@@ -7,7 +7,7 @@ from pycomm.libs.msnclass import MSN, TimeoutException
 from pycomm.libs.rpc import MagicClient
 from pycomm import signal as mysignal
 from pycomm.utils import textfile
-from accounttext import NotDataException, AccountNotMemery
+from pycomm.utils.accounttext import NotDataException, AccountNotMemery
 import threading
 import random
 import time
