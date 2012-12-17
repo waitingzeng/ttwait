@@ -4,7 +4,7 @@ from __future__ import with_statement
 import threading
 import os
 from random import randint, shuffle
-import mysignal
+from pycomm import signal as mysignal
 import traceback
 import tempfile
 import sys
