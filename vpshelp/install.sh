@@ -91,7 +91,7 @@ cd nginx-1.0.12
 ./configure --prefix=/root/data/nginx --with-http_sub_module
 make && make install
 rm -f /root/data/nginx/conf/nginx.conf
-ln -s /root/nginx.conf /root/data/nginx/conf/nginx.conf
+ln -s /root/data/ttwait/vpshelp/nginx.conf /root/data/nginx/conf/nginx.conf
 
 
 
