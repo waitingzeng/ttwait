@@ -50,7 +50,7 @@ class AccountClient(object):
             if not self.data:
                 self.load_accounts()
 
-            return self.data.pop(), '846266'
+            return '%s----%s' % (self.data.pop(), '846266')
     get = get_rnd
 
     def set_fail(self, acc):
