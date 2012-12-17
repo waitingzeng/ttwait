@@ -15,7 +15,7 @@ from pycomm.libs.msnclass.message import get_message
 from pycomm.utils.tracktime import DiffTime
 from pycomm.libs.rpc import MagicClient
 from messagecache import  MuchMessageCache
-from accounttext import RandomAccountNotMembery, NotDataException
+from pycomm.utils.accounttext import RandomAccountNotMembery, NotDataException
 from pycomm.utils import textfile
 import threading
 
