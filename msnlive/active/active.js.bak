@@ -1,0 +1,72 @@
+
+var email = '';
+if (phantom.args.length === 0) {
+    phantom.exit()
+} else {
+    email = phantom.args[0];
+    name = phantom.args[1];
+}
+phantom.injectJs('log.js');
+var log = open_log('active_js', '/root/data/log');
+log.open_debug();
+
+var page = require('webpage').create();
+page.onConsoleMessage = function(msg){log.info(msg)};
+//page.onResourceRequested = function(request)
+//{
+//    console.log('Request ' + request.url);//JSON.stringify(request, undefined, 4));
+//};
+
+page.lastload = Date.now();
+var t = setInterval(function(){
+    if(!page.lastload)return;
+    if((Date.now() - page.lastload) > 2000 ){
+        phantom.exit(3);
+    }
+}, 500);
+
+page.open('https://profile.live.com', function (status) {
+    if (status !== 'success') {
+        console.log(name + ' ' + email + ' fail');
+        phantom.exit(1);
+    } else {
+        var url = page.evaluate(function(){
+            return document.location.href;
+        });
+        console.log(name + ' ' + email + ' ' + url);
+        page.lastload = Date.now();
+        if(url.indexOf('https://login.live.com/login.srf') == 0){
+            page.injectJs('jquery.min.js');
+	        page.evaluate(function (email) {
+                console.log(email);
+	            $('#i0116').val(email);
+	            $('#i0118').val('846266');
+                $('#idSIButton9').click();
+
+	        }, email);
+        } else if (url.indexOf('https://profile.live.com/P.mvc#!/cid-') == 0) {
+            console.log(name + ' ' + email + ' success');
+            phantom.exit(0);
+        } else if(url.indexOf('https://account.live.com/Logincredprof.aspx') == 0){
+            //page.injectJs('jquery.min.js');
+            page.evaluate(function(){
+	            var $ = jQuery;
+	            $('#iCurPassword').val('846266').blur();
+	            $('#ctl00_ctl00_MainContent_MainContent_AccountContent_LoginWrapper_LoginRepeater_ctl00_LoginOther_Question').get(0).selectedIndex = 1;
+	            $('#ctl00_ctl00_MainContent_MainContent_AccountContent_LoginWrapper_LoginRepeater_ctl00_LoginOther_iSecretAnswer').val('最少 5 个字符');
+	            $('#ctl00_ctl00_MainContent_MainContent_AccountContent_btSubmit').click();
+                
+            });
+        } else if(url.indexOf('https://account.live.com/Proofs/Manage') == 0){
+            page.evaluate(function(email){
+                var $ = jQuery;
+                //$('#EmailAddress').val(email.replace('@', '_').replace('.', '_') + '@yeah.net');
+                $('#SaveBtn').click();
+            }, email);
+        } else if (url.indexOf('https://account.live.com/security/Sai.aspx/A1') == 0){
+            phantom.exit(2);
+        }
+
+    }
+    //phantom.exit();
+});

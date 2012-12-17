@@ -1,0 +1,25 @@
+{% load i18n %}
+<style type="text/css">
+.calendarbox {
+    z-index : 12000;
+}
+.clockbox {
+    z-index : 12000;
+}
+</style>
+
+<h3>{% blocktrans with filter_title=title %} By {{ filter_title }} {% endblocktrans %}</h3>
+<style>
+    .calendarbox {
+        margin-left: -251px;
+    }
+</style>
+<form method="GET" action="." id="{{ spec.form.field_name }}_rangeform">
+    {% for k, v in choices %}
+    <input type="hidden" name="{{ k }}" value="{{ v }}" />
+    {% endfor %}
+    {{ spec.form.as_p }}
+    <p>
+    <input type="submit" value="{% trans "Search" %}">
+    </p>
+</form>

@@ -1,0 +1,14 @@
+<script type="text/javascript">//<![CDATA[
+if (typeof jQuery == 'undefined') {
+	try { // use django admins 
+		jQuery=django.jQuery;
+	} catch(err) {
+		document.write('<script type="text/javascript"  src="//ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"><\/script>');
+	}
+}
+if(typeof jQuery == 'undefined' || (typeof jQuery.ui == 'undefined')) {
+	document.write('<script type="text/javascript"  src="//ttwait-ttwait.stor.sinaapp.com/js/jquery-ui.min.js"><\/script>');
+	document.write('<link type="text/css" rel="stylesheet" href="//ttwait-ttwait.stor.sinaapp.com/css/jquery-ui.css" />');
+}
+//]]>
+</script>
