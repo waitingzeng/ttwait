@@ -37,4 +37,8 @@ if [ -f /etc/bashrc ]; then
         . /etc/bashrc
 fi
 
+cd /root/data/ttwait/vpshelp
+chmod +x fstop stop
+
+
 # User specific aliases and functions

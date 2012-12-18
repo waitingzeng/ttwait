@@ -71,16 +71,15 @@ mkdir data
 cd data
 git clone git://github.com/waitingzeng/ttwait.git
 
-rm -rf ~/.profile
-ln -s /root/data/ttwait/vpshelp/.profile ~/.profile
+rm -rf ~/.bashrc
+ln -s /root/data/ttwait/vpshelp/.bashrc ~/.bashrc
 
-. ~/.profile
-cd /root/data/ttwait/vpshelp
-chmod +x fstop stop
+. ~/.bashrc
 
 cd /root/data
 
 mkdir log
+mkdir backup
 
 
 
