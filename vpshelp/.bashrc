@@ -32,8 +32,9 @@ export PYTHONPATH='/root/data/ttwait/'
 export PATH=/usr/local/phantomjs/bin:$PATH;
 
 # Source global definitions
-if [ -f /etc/profile ]; then
-	. /etc/profile
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+        . /etc/bashrc
 fi
 
 # User specific aliases and functions
