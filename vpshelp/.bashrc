@@ -37,8 +37,5 @@ if [ -f /etc/bashrc ]; then
         . /etc/bashrc
 fi
 
-cd /root/data/ttwait/vpshelp
-chmod +x fstop stop autobackup.sh
-
 
 # User specific aliases and functions
