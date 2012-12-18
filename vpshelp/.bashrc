@@ -23,7 +23,7 @@ alias stop='/root/data/ttwait/vpshelp/stop'
 alias fstop='/root/data/ttwait/vpshelp/fstop'
 alias load='python /root/data/ttwait/vpshelp/load.py'
 alias t='tail -f'
-alias update='cd /root/data/ttwait && git pull origin master'
+alias update='cd /root/data/ttwait && git stash &&  git pull origin master'
 alias nginxstart='rm -rf /root/data/cache/*; killall -9 nginx; /root/data/nginx/sbin/nginx'
 #alias nginxstop='killall -9 nginx'
 
@@ -38,7 +38,7 @@ if [ -f /etc/bashrc ]; then
 fi
 
 cd /root/data/ttwait/vpshelp
-chmod +x fstop stop
+chmod +x fstop stop autobackup.sh
 
 
 # User specific aliases and functions

@@ -30,7 +30,7 @@ FILE=""
 DBS=""
  
 # DO NOT BACKUP these databases
-IGGY="test mysql"
+IGGY="test mysql information_schema"
 
 rm -rf $MBD
  
@@ -48,6 +48,7 @@ cd $MBD
 ftp -i -n<<!
 open pic.caatashoes.com
 user ttwait@lx-r.com TTwait846266
+cd /public_html/caatashoes/backup
 binary
 mput *.gz
 EOF
