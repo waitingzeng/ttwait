@@ -93,7 +93,7 @@ class AccountModel(object):
         new_active = int(self.db.get(sql)['num'])
         sql = "select count(id) as num from accounts where state=0"
         new_acc = int(self.db.get(sql)['num'])
-        sql = "select count(id) as num from accounts where state>=2"
+        sql = "select count(id) as num from accounts where state>=10"
         can_send = int(self.db.get(sql)['num'])
         sql = "select count(id) as num from accounts where state=-1"
         login_fail = int(self.db.get(sql)['num'])
