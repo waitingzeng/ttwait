@@ -7,13 +7,14 @@ from pycomm.libs.msnclass import MSN, TimeoutException
 from pycomm.libs.rpc import MagicClient
 from pycomm import signal as mysignal
 from pycomm.utils import textfile
-from pycomm.utils.accounttext import NotDataException, AccountNotMemery
+from pycomm.utils.textfile import NotDataException
 import threading
 import random
+import sys
 import time
+from datetime import datetime
 
 class AccountClient(object):
-    save_name = 'data/add_friends.txt'
     func_name = 'get_add_friends'
     
     def __init__(self, *args):
@@ -21,11 +22,26 @@ class AccountClient(object):
         self.lock = threading.RLock()
         self.data = []
 
+    def load_thread(self):
+        if len(self.data) >= 10000:
+            time.sleep(3)
+            return
+        try:
+            data = self.load_accounts()
+            if data:
+                log.trace("%s load %s", self.func_name, len(data))
+                self.data.extend(data)
+
+        except:
+            log.exception()
+            pass
+
+
     def load_accounts(self):
         while True:
             try:
-                self.data = getattr(self.client, self.func_name)()
-                if not self.data:
+                data = getattr(self.client, self.func_name)()
+                if not data:
                     log.trace('load %s not data', self.func_name)
                     time.sleep(3)
                     continue
@@ -34,19 +50,15 @@ class AccountClient(object):
                 log.exception("%s fail", self.func_name)
                 time.sleep(3)
                 continue
-        file(self.save_name, 'w').write('\n'.join(self.data))
-        random.shuffle(self.data)
+        file('data/%s%s.txt' % (self.func_name, datetime.now().strftime('%Y%M%d%H%m%S')), 'w').write('\n'.join(data))
+        random.shuffle(data)
 
-        if not self.data:
+        if not data:
             raise Exception('Not Data Left')
-        
+        return data
 
     def get_rnd(self):
-        with self.lock:
-            if not self.data:
-                self.load_accounts()
-
-            return self.data.pop()
+        return self.data.pop()
 
     def set_fail(self, acc):
         try:
@@ -63,8 +75,10 @@ class AccountClient(object):
         except:     
             pass
 
+    def __nonzero__(self):
+        return bool(self.data)
+
 class TosDataClient(AccountClient):
-    save_name = 'data/tos.txt'
     func_name = 'get_tos_data'
 
     def sync(self):
@@ -76,17 +90,12 @@ class TosDataClient(AccountClient):
 class Application(ThreadBase):
     
     def init(self):
-        if not self.name:
-            self.accounts = AccountClient(self.conf.account_server[0], int(self.conf.account_server[1])) 
-        else:
-            self.accounts = textfile.CacheText(self.name, force_local=False)
-            self.accounts.load()
-        self.tos_num = self.options.tos_num or 0
-        if not self.tos_num:
-            self.tos = TosDataClient(self.conf.tos_server[0], int(self.conf.tos_server[1]))
-        else:
-            self.tos = AccountNotMemery('tos_%s' % self.tos_num)
+        self.accounts = AccountClient(self.conf.account_server[0], int(self.conf.account_server[1])) 
+        self.tos = TosDataClient(self.conf.tos_server[0], int(self.conf.tos_server[1]))
         
+        if not self.sync():
+            sys.exit()
+
         self.wait_chl = self.options.wait_chl or self.conf.wait_chl
         self.hello = self.conf.hello
         self.account_success = 0
@@ -105,7 +114,9 @@ class Application(ThreadBase):
         self.name = options.name
     
     def sync(self):
-        self.tos.sync()
+        self.tos.load_thread()
+        self.accounts.load_thread()
+        return bool(self.tos) and bool(self.accounts)
     
     def get_to(self):
         while mysignal.ALIVE:

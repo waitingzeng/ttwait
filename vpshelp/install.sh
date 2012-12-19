@@ -1,6 +1,6 @@
 #!/bin/sh
 yum remove -y httpd
-yum install -y gcc make flex autoconf vixie-cron zlib curl zlib-devel curl-devel bzip2 bzip2-devel ncurses-devel libjpeg-devel libpng-devel libtiff-devel freetype-devel pam-devel libxml libxslt libxslt-devel subversion sed vim* unzip libevent* libgevent* sqlite-devel libtermcap-devel *ssl* which gdb pcre pcre-devel sudo openssh-server zip ftp lrzsz dstat libtool gcc-c++ mysql mysql-server mysql-devel git
+yum install -y gcc make flex autoconf vixie-cron zlib curl zlib-devel curl-devel bzip2 bzip2-devel ncurses-devel libjpeg-devel libpng-devel libtiff-devel freetype-devel pam-devel libxml libxslt libxslt-devel subversion sed vim* unzip libevent* libgevent* sqlite-devel libtermcap-devel *ssl* which gdb pcre pcre-devel sudo openssh-server zip ftp lrzsz dstat libtool gcc-c++ mysql mysql-server mysql-devel git strace
 
 echo 1 > /proc/sys/net/ipv4/tcp_tw_recycle 
 echo 873200 > /proc/sys/net/core/wmem_max
