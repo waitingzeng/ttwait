@@ -5,7 +5,7 @@ import os
 import os.path as osp
 import random
 from pycomm.log import log
-from accounttext import AccountNotMemery, NotDataException
+from pycomm.utils.accounttext import AccountNotMemery, NotDataException
 
 class TosData(object):
     def __init__(self, data_dir='data'):
