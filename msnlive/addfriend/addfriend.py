@@ -23,7 +23,9 @@ class AccountClient(object):
         self.data = []
 
     def load_thread(self):
+        log.trace("begin %s", self.func_name)
         if len(self.data) >= 10000:
+            log.trace("skip %s", self.func_name)
             time.sleep(3)
             return
         try:
