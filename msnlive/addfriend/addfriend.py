@@ -120,6 +120,9 @@ class Application(ThreadBase):
         self.accounts.load_thread()
         return bool(self.tos) and bool(self.accounts)
     
+    def end(self):
+        pass
+
     def get_to(self):
         while mysignal.ALIVE:
             try:
