@@ -25,6 +25,9 @@ class ThreadBase(ProcBase):
     def main_loop(self):
         ct = 0
         while threading.activeCount() > 1:
+            tc = threading.activeCount()
+            if tc < (self.worker_num + 1):
+                self.create_worker()
             try:
                 if self.wait:
                     time.sleep(self.wait)
