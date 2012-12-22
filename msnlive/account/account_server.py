@@ -71,7 +71,7 @@ class AccountServer(MagicServer):
 
     def send_accounts_iter(self):
         while True:
-            for row in self.db.get_iter('send_accounts', state=10, can_add=1):
+            for row in self.db.get_iter('send_accounts', state=2, can_add=1):
                 yield row
             yield None
 
