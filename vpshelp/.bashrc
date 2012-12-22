@@ -25,6 +25,10 @@ alias load='python /root/data/ttwait/vpshelp/load.py'
 alias t='tail -f'
 alias update='cd /root/data/ttwait && git stash &&  git pull origin master'
 alias nginxstart='rm -rf /root/data/cache/*; killall -9 nginx; /root/data/nginx/sbin/nginx'
+
+export LOGFILEFORMAT='%m%d%H'
+export LOGPATH='/root/data/log'
+export ACCOUNTHOSＴ='184.82.64.183'
 #alias nginxstop='killall -9 nginx'
 
 export PYTHONSTARTUP=~/.pythonrc.py
