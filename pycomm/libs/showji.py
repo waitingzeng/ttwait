@@ -5,11 +5,16 @@ from pycomm.singleweb import get_page
 from pycomm.log import log
 from pycomm.utils import text
 import json
+import socket
+socket.setdefaulttimeout(30)
+
 
 # u'QueryResult' -> should be True
 def query138(m):
     m = int(m)
-    assert m> 1000000 # atleast
+    #assert m> 1000000 # atleast
+    if m <= 1000000:
+        return None
     url = "http://www.ip138.com:8080/search.asp?mobile=%s&action=mobile"
     res = get_page(url % m)
     if not res:
@@ -25,7 +30,9 @@ def query138(m):
 
 def query(m):
     m = int(m)
-    assert m> 1000000 # atleast
+    #assert m> 1000000 # atleast
+    if m <= 1000000:
+        return None
     url = "http://api.showji.com/Locating/www.showji.com.aspx?m=%s&output=json&callback=querycallback"
     res = get_page(url % m, headers={'referer' : 'http://guishu.showji.com/search.htm?m=%s' % m})
     if not res:

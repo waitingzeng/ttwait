@@ -8,8 +8,8 @@ from datetime import datetime
 from functools import partial
 
 
-_PATH_PREFIX = os.environ.get('LOGPATH', "/root/data/logs")
-_LOG_FILEFORMAT = os.environ.get('LOGFILEFORMAT', '%m%d%H')
+_PATH_PREFIX = os.environ.get('LOGPATH', "/home/webuser/logs")
+_LOG_FILEFORMAT = os.environ.get('LOGFILEFORMAT', '%Y%m%d%H')
 import logging
 try:
     import codecs
@@ -277,8 +277,12 @@ class LogProxy(object):
         if exc_info:
             if type(exc_info) != types.TupleType:
                 exc_info = sys.exc_info()
-        record = cur_log.makeRecord(cur_log.name, level, fn, lno, msg, args, exc_info, func, extra)
-        cur_log.handle(record)
+        try:
+            record = cur_log.makeRecord(cur_log.name, level, fn, lno, msg, args, exc_info, func, extra)
+            cur_log.handle(record)
+        except:
+            print 'log info fail ', level, msg, args, exc_info, extra
+            
 
 
 class StdErr(object):

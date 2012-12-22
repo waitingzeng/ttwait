@@ -133,7 +133,7 @@ models.UnixTimestampField = UnixTimestampField
 class ZeroForeignKey(models.ForeignKey):
     def get_db_prep_save(self, value, connection):
         if value == '' or value == None:
-            return None
+            return 0
         elif value == 0:
             return 0
         else:

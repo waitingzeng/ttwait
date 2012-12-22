@@ -15,9 +15,6 @@ class ExportChangeList(ChangeList):
     def __init__(self, *args, **kwargs):
         ChangeList.__init__(self, *args, **kwargs)
 
-        self.show_all = True
-        self.formset = None
-
 
 class QuerySetChangeList(object):
     def __init__(self, model, query_set, list_display, model_admin=None):

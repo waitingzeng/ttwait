@@ -218,3 +218,10 @@ def decorator(caller, func=None):
             'return decorator(_call_, %s)' % first,
             evaldict, undecorated=caller, __wrapped__=caller,
             doc=caller.__doc__, module=caller.__module__)
+
+@decorator
+def method_cache(method, self):
+    cache_name = '_%s_cache' % method.__name__
+    if not hasattr(self, cache_name):
+        self.__dict__[cache_name] = method(self)
+    return getattr(self, cache_name)

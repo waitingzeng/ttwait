@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 #coding=utf-8
 import json
-from pycomm.singleweb import SingleWeb
+from singleweb import SingleWeb
 import sys
 import traceback
 

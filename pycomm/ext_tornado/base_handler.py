@@ -45,6 +45,7 @@ class BaseHandler(RequestHandler):
 
     def __init__(self, *args, **kwargs):
         RequestHandler.__init__(self, *args, **kwargs)
+        self.log = PrefixLog('%s[%s]' % (self.request.method, self.request.path))
         self.init()
         
     def on_finish(self):
@@ -52,7 +53,6 @@ class BaseHandler(RequestHandler):
         self.log.trace("finish handler")
 
     def init(self):
-        self.log = PrefixLog('%s[%s][user %s]' % (self.request.method, self.request.path, self.current_user))
 
         self._settings = Storage(self.application.settings)
 

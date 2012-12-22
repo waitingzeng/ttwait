@@ -6,11 +6,13 @@ from django.conf.urls import patterns, url
 from changelist import ExportChangeList, QuerySetChangeList
 from django.core.exceptions import PermissionDenied
 from django.template.response import SimpleTemplateResponse, TemplateResponse
+from django.http import HttpResponse
 from django.contrib.admin.options import csrf_protect_m, update_wrapper
 from django.utils.translation import ugettext as _
 from django.utils.encoding import force_text
 from pycomm.utils.pprint import pformat
 from pycomm.log import log
+from django.contrib.admin.views.main import ALL_VAR
 
 
 
@@ -160,9 +162,10 @@ class ModelAdmin(admin.ModelAdmin):
         opts = self.model._meta
         app_label = opts.app_label
         raw = request.GET.pop('raw', [''])[0]
+        request.GET[ALL_VAR] = 1
         cl = ExportChangeList(request, self.model, list_display, (),
                 self.list_filter, None, None, False,
-                100, 100, [], self)
+                100, 1000000, [], self)
         
         context = {
             'cl' : cl,
@@ -250,10 +253,23 @@ class ModelAdmin(admin.ModelAdmin):
                     media = media + spec.form.media
                 response.context_data['media'] = media
 
+    def before_changelist_view(self, request, extra_context):
+        pass
+
+    def after_changelist_view(self, request, response):
+        pass
+
     def changelist_view(self, request, extra_context=None):
         if self.has_view_permission(request, None):
             self.has_change = True
         
+        if not extra_context:
+            extra_context = {}
+
+        ret = self.before_changelist_view(request, extra_context)
+        if isinstance(ret, HttpResponse):
+            return ret
+
         response = admin.ModelAdmin.changelist_view(self, request, extra_context)
         try:
             response.context_data['has_export_permission'] = self.has_export_permission(request)
@@ -270,9 +286,33 @@ class ModelAdmin(admin.ModelAdmin):
             pass
 
         self.has_change = False
+
+        ret = self.after_changelist_view(request, response)
+        if isinstance(ret, HttpResponse):
+            return ret
+
         return response                
 
+    def before_change_view(self, request, object_id, form_url, extra_context):
+        pass
 
+    def after_change_view(self, request, response):
+        pass
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        if not extra_context:
+            extra_context = {}
+
+        ret = self.before_change_view(request, object_id, form_url, extra_context)
+        if isinstance(ret, HttpResponse):
+            return ret
+
+        response = admin.ModelAdmin.change_view(self, request, object_id, form_url, extra_context)
+
+        ret = self.after_change_view(request, response)
+        if isinstance(ret, HttpResponse):
+            return ret
+        return response
 
 
 site = admin.site

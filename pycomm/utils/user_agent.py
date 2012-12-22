@@ -168,6 +168,12 @@ class UserAgent(object):
         self.is_weixin = self.agent.find('micromessenger') != -1
         self._compile_data()
 
+    def __unicode__(self):
+        return self.agent
+
+    def __str__(self):
+        return self.agent
+
     def _compile_data(self):
         self._set_platform()
         for func in ['_set_robot', '_set_browser', '_set_mobile']:

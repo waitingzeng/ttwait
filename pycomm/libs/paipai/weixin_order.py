@@ -56,6 +56,7 @@ class Application(object):
     def get_page(self, url, *args, **kwargs):
         retry = kwargs.pop('retry', False)
         newurl = html.add_querystr(url, 'g_tk=%s' % self.gtk)
+        log.trace("get %s kwargs %s", newurl, kwargs)
         page = self.web.get_page(newurl, *args, **kwargs)
         if not self.web.url.startswith(self.m_paipai_domain) or self.web.url.find('LoginAction.xhtml') != -1 or self.web.url.find('40x') != -1:
             if retry:

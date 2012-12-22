@@ -45,7 +45,7 @@ class MysqlCreation(DatabaseCreation):
             if not null:
                 field_output.append(style.SQL_KEYWORD('NOT NULL'))
             if f.default != NOT_PROVIDED and isinstance(f.default, (int, float, long, basestring)):
-                field_output.append('DEFAULT %s' % f.default)
+                field_output.append('DEFAULT %s' % repr(f.default))
             if f.primary_key:
                 field_output.append(style.SQL_KEYWORD('PRIMARY KEY'))
             elif f.unique:

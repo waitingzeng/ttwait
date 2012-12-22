@@ -1,8 +1,7 @@
 
 
 from .fields import autoselect_fields_check_can_add
-from django.contrib import admin
-
+from pycomm.django_apps.ext_django import admin
 
 class AjaxSelectAdmin(admin.ModelAdmin):
 

@@ -45,7 +45,7 @@ class Mixin(object):
         self.initmixin()
 
     def initmixin(self):
-        #logging.info('[Mixin] Dealing class [%s]' % self.__class__.__name__)
+        logging.info('[Mixin] Dealing class [%s]' % self.__class__.__name__)
         if self.__class__.__name__ == 'Mixin':  #don't dealing Mixin class itself
             return
         if hasattr(self.__class__, '__mixinflag__'):
