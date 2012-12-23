@@ -72,8 +72,7 @@ class AccountClient(object):
         if num == 0:
             return
         try:
-            if num == 1 or num % 10 == 0:
-                self.client.add_account(acc, num + 1)
+            self.client.add_account(acc, num + 1)
         except:     
             pass
 
@@ -161,11 +160,12 @@ class Application(ThreadBase):
             for i in range(1):
                 to_email = self.get_to()
                 ret = msn.add_contact(to_email, 1, self.hello)
-                
-                members = msn.get_allow_email()
-                num = members and len(members) or 0
-                if not self.name and num:
-                    self.accounts.update_contact(account, num)
+
+                if random.randint(1, 10) == 10:
+                    members = msn.get_allow_email()
+                    num = members and len(members) or 0
+                    if not self.name and num:
+                        self.accounts.update_contact(account, num)
                 if ret == 0:
                     self.add_success += 1
                     log.trace('%s add %s success friends %s', account, to_email, num)
