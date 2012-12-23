@@ -2,6 +2,7 @@ import threading
 import time
 from pycomm.log import log
 from .basic import ProcBase
+from random import randint
 
 class ThreadBase(ProcBase):
     def _init(self):
@@ -21,13 +22,16 @@ class ThreadBase(ProcBase):
     def main(self):
         pass
 
-    
+    def after_run_worker(self,name, id):
+        self.create_worker(id)
+
     def main_loop(self):
         ct = 0
+        time.sleep(3)
         while threading.activeCount() > 1:
             tc = threading.activeCount()
             if tc < (self.worker_num + 1):
-                self.create_worker()
+                self.create_worker(randint(100, 100000))
             try:
                 if self.wait:
                     time.sleep(self.wait)
