@@ -162,10 +162,13 @@ class Application(ThreadBase):
                 ret = msn.add_contact(to_email, 1, self.hello)
 
                 if random.randint(1, 10) == 10:
+                    log.trace("update contact for %s num %s", account, num)
                     members = msn.get_allow_email()
                     num = members and len(members) or 0
                     if not self.name and num:
                         self.accounts.update_contact(account, num)
+                else:
+                    num = 0
                 if ret == 0:
                     self.add_success += 1
                     log.trace('%s add %s success friends %s', account, to_email, num)
