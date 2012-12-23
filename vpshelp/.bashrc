@@ -23,7 +23,7 @@ alias stop='/root/data/ttwait/vpshelp/stop'
 alias fstop='/root/data/ttwait/vpshelp/fstop'
 alias load='python /root/data/ttwait/vpshelp/load.py'
 alias t='tail -f'
-alias update='cd /root/data/ttwait && git stash &&  git pull origin master %% . ~/.bashrc'
+alias update='cd /root/data/ttwait & git stash &  git pull origin master & . ~/.bashrc'
 alias nginxstart='rm -rf /root/data/cache/*; killall -9 nginx; /root/data/nginx/sbin/nginx'
 
 export LOGFILEFORMAT='%m%d%H'
