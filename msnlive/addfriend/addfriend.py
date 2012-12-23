@@ -161,6 +161,7 @@ class Application(ThreadBase):
             for i in range(1):
                 to_email = self.get_to()
                 ret = msn.add_contact(to_email, 1, self.hello)
+                
                 members = msn.get_allow_email()
                 num = members and len(members) or 0
                 if not self.name and num:

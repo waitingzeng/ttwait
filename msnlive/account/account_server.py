@@ -17,7 +17,6 @@ class AccountServer(MagicServer):
             if callable(v) and k.endswith('_iter'):
                 self.__dict__['_%s' % k] = v()
 
-
     def add_account(self, handler, names=[], state=0, kwargs={}):
         if not isinstance(names, list):
             names = [names]
