@@ -95,22 +95,9 @@ class MSNSend(ThreadBase):
             self.names = set(self.names)
 
     def init(self):
-        if self.args:
-            self.args = '_' + '_'.join(self.args)
-        else:
-            self.args = ''
-
         self.parse_names() 
-        
-        if self.names == self.site_config.all:
-            logname = 'all'
-        else:
-            logname = ','.join(self.names)
-
-        logname = '%s_%s_%s' % (self.conf.site_config[:-4], logname, self.options.account or 'net')
-        self.log = PrefixLog(logname)
             
-        self.msgs = MuchMessageCache(self.site_config, self.names, self.conf.shorturl==1, log=self.log)
+        self.msgs = MuchMessageCache(self.site_config, self.names, self.conf.shorturl==1)
         #self.msgs.load() 
         if self.options.test_msgs:
             print self.msgs.get()

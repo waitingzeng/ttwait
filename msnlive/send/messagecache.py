@@ -41,7 +41,7 @@ class MessageUrlCache(object):
     MSGSDIR = 'msgs'
     MSGPREFIX = ''
     URLLIMIT = 5
-    def __init__(self, name='', from_url=None, from_site=None, to_site=None, short_url=False, api_key=None, urllimit=5, log=log, **kwargs):
+    def __init__(self, name='', from_url=None, from_site=None, to_site=None, short_url=False, api_key=None, urllimit=5, **kwargs):
         if not from_site:
             raise Exception("Message Site Not Exists")
         self.log = log
