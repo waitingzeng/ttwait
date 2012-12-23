@@ -98,6 +98,7 @@ class MSNSend(ThreadBase):
         self.parse_names() 
             
         self.msgs = MuchMessageCache(self.site_config, self.names, self.conf.shorturl==1)
+        self.log = log
         #self.msgs.load() 
         if self.options.test_msgs:
             print self.msgs.get()
