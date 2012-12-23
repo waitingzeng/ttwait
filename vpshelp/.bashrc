@@ -26,6 +26,7 @@ alias t='tail -f'
 alias update='cd /root/data/ttwait && git stash &&  git pull origin master && . ~/.bashrc'
 alias nginxstart='rm -rf /root/data/cache/*; killall -9 nginx; /root/data/nginx/sbin/nginx'
 alias super='supervisord -c /root/data/ttwait/vpshelp/supervisord.conf'
+alias reload='supervisorctl reload && super'
 
 export LOGFILEFORMAT='%m%d%H'
 export LOGPATH='/root/data/log'
