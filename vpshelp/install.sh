@@ -51,7 +51,7 @@ wget http://pypi.python.org/packages/2.6/s/setuptools/setuptools-0.6c11-py2.6.eg
 
 sh setuptools-0.6c11-py2.6.egg
 
-easy_install-2.6 cython pyquery ClientForm readline 
+easy_install-2.6 cython pyquery ClientForm readline supervisor
 
 cd /root/src
 wget http://gevent.googlecode.com/files/gevent-1.0b2.tar.gz
@@ -73,6 +73,7 @@ git clone git://github.com/waitingzeng/ttwait.git
 
 rm -rf ~/.bashrc
 ln -s /root/data/ttwait/vpshelp/.bashrc ~/.bashrc
+ln -s /root/data/ttwait/vpshelp/supervisord.conf /var/supervisord.conf
 
 . ~/.bashrc
 
