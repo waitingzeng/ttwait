@@ -73,7 +73,7 @@ git clone git://github.com/waitingzeng/ttwait.git
 
 rm -rf ~/.bashrc
 ln -s /root/data/ttwait/vpshelp/.bashrc ~/.bashrc
-ln -s /root/data/ttwait/vpshelp/supervisord.conf /var/supervisord.conf
+ln -s /root/data/ttwait/vpshelp/supervisord.conf /etc/supervisord.conf
 
 . ~/.bashrc
 
