@@ -11,7 +11,7 @@ alias live='cd /root/data/ttwait/msnlive'
 alias pycomm='cd /root/data/ttwait/pycomm'
 alias log='cd /root/data/log'
 alias pp='ps aux | grep -v grep | grep python '
-alias pptop="top `pp | grep -v supervisord | awk 'BEGIN{p=\"\";}{p=p\" -p \"$2 }END{print p}'`"
+alias pptop="pp | grep -v supervisord | awk 'BEGIN{p=\"\";}{p=p\" -p \"$2 }END{print p}' | xargs -I {} top {}"
 alias free='free -m'
 alias grep='grep --color'
 alias terr='tail -f /root/data/log/`date +%m%d%H`.log'

@@ -77,8 +77,8 @@ class HTTPRefreshProcessor(urllib2.BaseHandler):
     https_response = http_response
 
 
-def get_page(url, data=None, headers={}, times=3, proxy=None):
-    web = SingleWeb(proxy=proxy)
+def get_page(url, data=None, headers={}, times=3, proxy=None, debug=0):
+    web = SingleWeb(proxy=proxy, debug=debug)
     req = web.make_req(url, data, headers)
     for i in range(times):
         data = web.get_page(req)

@@ -73,7 +73,6 @@ class LookupChannel(object):
             for item in qs:
                 things[str(getattr(item, self.to_field))] = item
             res = [things[str(aid)] for aid in ids if things.has_key(str(aid))]
-        print self.model, res, ids
         return res
 
 

@@ -11,7 +11,7 @@ from django.contrib.admin.options import csrf_protect_m, update_wrapper
 from django.utils.translation import ugettext as _
 from django.utils.encoding import force_text
 from pycomm.utils.pprint import pformat
-from pycomm.log import log
+from pycomm.log import log, PrefixLog
 from django.contrib.admin.views.main import ALL_VAR
 
 
@@ -19,6 +19,11 @@ from django.contrib.admin.views.main import ALL_VAR
 class ModelAdmin(admin.ModelAdmin):
     list_export_fields = None
     stat_list_filter = None
+
+    def __init__(self, *args, **kwargs):
+        admin.ModelAdmin.__init__(self, *args, **kwargs)
+        info = self.model._meta.app_label, self.model._meta.module_name
+        self.log = PrefixLog('admin:%s_%s' % info)
 
     def has_view_permission(self, request, obj=None):
         opts = self.opts
@@ -53,7 +58,7 @@ class ModelAdmin(admin.ModelAdmin):
     def log_change(self, request, object, message):
         admin.ModelAdmin.log_change(self, request, object, message)
 
-        log.trace('user %s change %s %s', request.user, object, message)
+        self.log.trace('user %s change %s %s', request.user, object, message)
 
     def construct_change_message(self, request, form, formsets):
         """
@@ -120,6 +125,13 @@ class ModelAdmin(admin.ModelAdmin):
         url = reverse(hasperm_url, current_app=site_name)
         return url
 
+    def get_extra_info(self, request):
+        extra_info = request.GET.get('extra_info')
+        if not extra_info:
+            return None
+        extra_info = extra_info.split('|', 1)
+        return extra_info
+
     def get_export_fields(self, request):
         if not self.list_export_fields:
             self.list_export_fields = []
@@ -163,9 +175,7 @@ class ModelAdmin(admin.ModelAdmin):
         app_label = opts.app_label
         raw = request.GET.pop('raw', [''])[0]
         request.GET[ALL_VAR] = 1
-        cl = ExportChangeList(request, self.model, list_display, (),
-                self.list_filter, None, None, False,
-                100, 1000000, [], self)
+        cl = ExportChangeList(self, request, list_display=list_display)
         
         context = {
             'cl' : cl,
@@ -222,9 +232,7 @@ class ModelAdmin(admin.ModelAdmin):
 
         list_display = self.get_list_display(request)
         list_filter = self.stat_list_filter and self.list_filter + self.stat_list_filter or self.list_filter
-        cl = ExportChangeList(request, self.model, list_display, (),
-                list_filter  , None, None, False,
-                100, 100, [], self)
+        cl = ExportChangeList(self, request, self.model, list_display, list_filter)
         
         stat_chartit = self.get_chartit(request, cl)
         context = {

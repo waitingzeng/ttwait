@@ -34,6 +34,7 @@ def shortcut(url, *args, **kwargs):
 message_map = {
     'cww' : 'money-so-easy.com',
     'zuai' : 'muchmuchgiveyou.com',
+    'pfbag' : 'make-money-article.com',
 }
 
 class MessageUrlCache(object):

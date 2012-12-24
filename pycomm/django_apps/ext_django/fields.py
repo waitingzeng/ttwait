@@ -125,7 +125,17 @@ class UnixTimestampField(models.DateTimeField):
         if self.auto_now:
              typ += ['on update CURRENT_TIMESTAMP']
         return ' '.join(typ)
-    
+
+#    def get_prep_value(self, value):
+#        if isinstance(value, datetime.datetime):
+#            return time.mktime(value.timetuple())
+#        return value
+
+#    def value_from_object(self, obj):
+#        value = super(UnixTimestampField, self).value_from_object(obj)
+#        if isinstance(value, int):
+#            return datetime.datetime.fromtimestamp(value)
+#        return value
 models.UnixTimestampField = UnixTimestampField
 
 

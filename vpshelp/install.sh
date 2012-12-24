@@ -88,13 +88,16 @@ cd /root/src
 wget http://nginx.org/download/nginx-1.0.12.tar.gz
 tar xzvf nginx-1.0.12.tar.gz
 cd nginx-1.0.12
-./configure --prefix=/root/data/nginx --with-http_sub_module
+./configure --prefix=/root/data/nginx --with-http_sub_module --with-http_stub_status_module
 make && make install
 rm -f /root/data/nginx/conf/nginx.conf
 ln -s /root/data/ttwait/vpshelp/nginx.conf /root/data/nginx/conf/nginx.conf
 
-
-
+yum install -y net-snmp net-snmp-devel net-snmp-utils
+/etc/init.d/snmpd stop
+net-snmp-config --create-snmpv3-user -ro -A TTwait846266 -a MD5 jiankongbao
+/etc/init.d/snmpd start
+snmpwalk -v 3 -u jiankongbao -a MD5 -A "TTwait846266" -l authNoPriv 127.0.0.1 sysDescr
 
 cd /root/data/msnlive/data
 mkdir sender
