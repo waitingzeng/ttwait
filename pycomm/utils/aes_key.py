@@ -33,7 +33,7 @@ class AESKey(object):
 
     def encrypt(self, content):
         t = int(time.time() * 1000)
-        s = '%s%s%s' % (self.prefix, t, content)
+        s = '%s%s%02d%s' % (self.prefix, t, len(content), content)
         sk = EncodeAES(self.aes, s)
         return sk.replace('=', '.')
 
@@ -51,7 +51,9 @@ class AESKey(object):
         try:
             if len(s) % BLOCK_SIZE != 0:
                 return 8, None
-            prefix, t, content = s[:2], s[2:15], s[15:]
+            prefix, t, content_len = s[:2], s[2:15], s[15:17]
+            content_len = int(content_len)
+            content = s[17:17+content_len]
             t = int(t) / 1000
         except:
             log.exception()

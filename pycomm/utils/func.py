@@ -14,3 +14,4 @@ def get_schema(func):
         if code.__doc__:
             code += '\n' + code.__doc__
         return code
+    return get_schema

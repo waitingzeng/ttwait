@@ -7,6 +7,7 @@ from pycomm.libs.msnclass import MSN, TimeoutException
 from pycomm.libs.rpc import MagicClient
 from pycomm import signal as mysignal
 from pycomm.utils import textfile
+from pycomm.utils.tracktime import DiffTime
 from pycomm.utils.textfile import NotDataException
 import threading
 import random
@@ -24,7 +25,7 @@ class AccountClient(object):
 
     def load_thread(self):
         log.trace("begin %s", self.func_name)
-        if len(self.data) >= 10000:
+        if len(self.data) >= 1:
             log.trace("skip %s", self.func_name)
             time.sleep(3)
             return
@@ -42,7 +43,7 @@ class AccountClient(object):
     def load_accounts(self):
         while True:
             try:
-                data = getattr(self.client, self.func_name)()
+                data = getattr(self.client, self.func_name)(1)
                 if not data:
                     log.trace('load %s not data', self.func_name)
                     time.sleep(3)
@@ -95,15 +96,22 @@ class Application(ThreadBase):
         self.accounts = AccountClient(self.conf.account_server[0], int(self.conf.account_server[1])) 
         self.tos = TosDataClient(self.conf.tos_server[0], int(self.conf.tos_server[1]))
         
-        if not self.sync():
-            sys.exit()
-
+        self.begin = DiffTime()
+        self.cur = DiffTime()
+        
         self.wait_chl = self.options.wait_chl or self.conf.wait_chl
+        self.add_num = self.conf.add_num or 1
         self.hello = self.conf.hello
         self.account_success = 0
         self.account_fail = 0
         self.add_fail = 0
-        self.add_success = 0
+        self.total = 0
+        self.last_total = 0
+        
+        if not self.sync():
+            sys.exit()
+
+
 
     def add_options(self, parser):
         parser.add_option("-n", '--name', dest='name', action="store", help="the account file name(default get from account server)", type="string")
@@ -116,8 +124,19 @@ class Application(ThreadBase):
         self.name = options.name
     
     def sync(self):
+
         self.tos.load_thread()
         self.accounts.load_thread()
+        diff = self.begin.get_diff()
+        if diff == 0:
+            return
+        diff1 = self.cur.get_diff()
+        cur_total = self.total - self.last_total
+        self.last_total = self.total
+        self.cur.reset()
+        s = "account %s, account_speed %0.2f total %s speed:%0.2f/%0.2f time %0.2f/%0.2f " % (self.account_success, self.account_success / diff, self.total, self.total / diff, cur_total/diff1, diff, diff1 )
+        log.error(s)
+
         return bool(self.tos) and bool(self.accounts)
     
     def end(self):
@@ -158,7 +177,7 @@ class Application(ThreadBase):
             log.trace("%s login success", account)
              
             self.account_success += 1
-            for i in range(1):
+            for i in range(self.conf.add_num):
                 to_email = self.get_to()
                 ret = msn.add_contact(to_email, 1, self.hello)
                 members = msn.get_allow_email()
@@ -166,7 +185,7 @@ class Application(ThreadBase):
                 if not self.name and num:
                     self.accounts.update_contact(account, num)
                 if ret == 0:
-                    self.add_success += 1
+                    self.total += 1
                     log.trace('%s add %s success friends %s', account, to_email, num)
 
                 else:

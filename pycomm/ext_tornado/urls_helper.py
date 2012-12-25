@@ -8,10 +8,11 @@ from pycomm.log import log
 
 class UrlsHelper(object):
     def __init__(self):
-        self.handlers = set()
+        self.handlers = []
 
     def add_handler(self, handler):
-        self.handlers.add(handler)
+        if handler not in self.handlers:
+            self.handlers.append(handler)
 
 
     def get_url_name(self, name):
@@ -24,11 +25,11 @@ class UrlsHelper(object):
         return n.strip('_').lower()
 
     def get_base_urls(self, handler, controller_path):
+        print inspect.getsourcefile(handler)
         abspath = osp.abspath(inspect.getsourcefile(handler)).lower()
         abspath = abspath.replace('\\', '/')
 
         if abspath.find(controller_path) == -1:
-            print abspath
             raise StopIteration
 
         base_url = abspath.split(controller_path)[-1]
@@ -107,6 +108,24 @@ class UrlsHelper(object):
         return urls
 
 
+    def sort_urls(self, all_urls):
+        url_no_re = []
+        url_num_re = []
+        url_all_re = []
+        for handler in all_urls:
+            url = handler[0]
+            if url.endswith('(.+)') or url.endswith('(.+)/'):
+                url_all_re.append(handler)
+            elif url.endswith('(\d+)') or url.endswith('(\d+)/'):
+                url_num_re.append(handler)
+            else:
+                url_no_re.append(handler)
+
+        url_all_re.sort()
+        url_num_re.sort()
+        url_no_re.sort()
+        return url_no_re + url_num_re + url_all_re
+
     def get_urls(self, controller_path):
         all_urls = []
         for handler in self.handlers:
@@ -119,7 +138,7 @@ class UrlsHelper(object):
         if len(dict(all_urls)) != len(all_urls):
             log.error('had dupl urls')
 
-        all_urls.sort()
+        #all_urls = self.sort_urls(all_urls)
 
         return all_urls
 

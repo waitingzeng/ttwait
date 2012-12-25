@@ -331,6 +331,11 @@ log = LogProxy()
 
 logging.getLogger = lambda x=None:log
 
+logging.root =  log
+logging.Logger.root = log
+
+
+
 if __name__ == '__main__':
     open_log('aaa', path='C:\\')
     open_debug()

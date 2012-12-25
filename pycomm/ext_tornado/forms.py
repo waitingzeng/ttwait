@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import re
-import tornado.locale
 from tornado.escape import to_unicode
 from wtforms import Form as wtForm
 
@@ -17,11 +16,11 @@ class Form(wtForm):
 
         class SigninHandler(RequestHandler):
             def get(self):
-                form = SigninForm(self.request.arguments, locale_code=self.locale.code)
+                form = SigninForm(self.request.arguments)
 
     """
-    def __init__(self, formdata=None, obj=None, prefix='', locale_code='en_US', **kwargs):
-        self._locale_code = locale_code
+    def __init__(self, formdata=None, obj=None, prefix='',**kwargs):
+        self.success = False
         super(Form, self).__init__(formdata, obj, prefix, **kwargs)
 
     def process(self, formdata=None, obj=None, **kwargs):
@@ -29,11 +28,10 @@ class Form(wtForm):
             formdata = TornadoArgumentsWrapper(formdata)
         super(Form, self).process(formdata, obj, **kwargs)
 
-    def _get_translations(self):
-        if not hasattr(self, '_locale_code'):
-            self._locale_code = 'en_US'
-        return TornadoLocaleWrapper(self._locale_code)
 
+    def validate(self):
+        self.success = wtForm.validate(self)
+        return self.success
 
 class TornadoArgumentsWrapper(dict):
     def __getattr__(self, key):
@@ -73,3 +71,13 @@ class TornadoLocaleWrapper(object):
 
     def ngettext(self, message, plural_message, count):
         return self.locale.translate(message, plural_message, count)
+
+
+from wtforms.fields.core import *
+
+from wtforms.fields.simple import *
+
+# Compatibility imports
+from wtforms.fields.core import Label, Field, _unset_value, SelectFieldBase, Flags
+from wtforms.validators import *
+

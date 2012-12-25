@@ -108,13 +108,15 @@ class UnixTimestampField(models.DateTimeField):
     def __init__(self, verbose_name='',  auto_now=False,
                  auto_now_add=False,  **kwargs):
 
-        self.auto_now, self.auto_now_add = auto_now, auto_now_add
         if auto_now or auto_now_add:
             kwargs['editable'] = False
             kwargs['blank'] = True
         self.isnull = True
+        kwargs['auto_now'] = auto_now
+        kwargs['auto_now_add'] = auto_now_add
         super(UnixTimestampField, self).__init__(verbose_name, **kwargs)
-        
+
+
     def db_type(self, connection):
         typ=['TIMESTAMP']
         # See above!
@@ -126,10 +128,6 @@ class UnixTimestampField(models.DateTimeField):
              typ += ['on update CURRENT_TIMESTAMP']
         return ' '.join(typ)
 
-#    def get_prep_value(self, value):
-#        if isinstance(value, datetime.datetime):
-#            return time.mktime(value.timetuple())
-#        return value
 
 #    def value_from_object(self, obj):
 #        value = super(UnixTimestampField, self).value_from_object(obj)

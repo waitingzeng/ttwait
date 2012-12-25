@@ -145,9 +145,19 @@ class BaseHandler(RequestHandler):
 
     def clear_cookie(self, name, path="/", domain=None):
         if domain is None:
-            domain = self.settings.get('cookie_domain', '')
+            domain = self.settings.get('cookie_domain')
         return RequestHandler.clear_cookie(self, name, path, domain)
 
+    def set_cookie(self, name, value, domain=None, expires=None, path="/",
+                   expires_days=None, **kwargs):
+        if not domain:
+            domain = self.settings.get('cookie_domain')
+
+        if not path:
+            path = self.settings.get('path')
+
+        return RequestHandler.set_cookie(self, name, value, domain, expires, path,
+                   expires_days, **kwargs)
 
     def _handle_request_exception(self, e):
         if not isinstance(e, HTTPError):
@@ -157,6 +167,3 @@ class BaseHandler(RequestHandler):
             return self.send_error(500, exc_info=sys.exc_info())
         return RequestHandler._handle_request_exception(self, e)
 
-    def get_forms(self):
-        pass
-    
