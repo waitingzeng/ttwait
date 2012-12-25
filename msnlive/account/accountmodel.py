@@ -69,7 +69,7 @@ class AccountModel(object):
         log.debug("sql %s params %s", sql, params)
         return self.db.query(sql, *params)
 
-    def get_iter(self, action=None, state=None,*args, **kwargs):
+    def get_iter(self, action=None, state=None, *args, **kwargs):
         last_id = self.get_action_num(action)
         log.trace('get_iter for action %s from %s', action, last_id)
         while True:
@@ -93,7 +93,7 @@ class AccountModel(object):
         new_active = int(self.db.get(sql)['num'])
         sql = "select count(id) as num from accounts where state=0"
         new_acc = int(self.db.get(sql)['num'])
-        sql = "select count(id) as num from accounts where state>=2"
+        sql = "select count(id) as num from accounts where state>=20"
         can_send = int(self.db.get(sql)['num'])
         sql = "select count(id) as num from accounts where state=-1"
         login_fail = int(self.db.get(sql)['num'])
