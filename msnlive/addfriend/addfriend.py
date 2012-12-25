@@ -17,6 +17,7 @@ from datetime import datetime
 
 class AccountClient(object):
     func_name = 'get_add_friends'
+    limit = 10000
     
     def __init__(self, *args):
         self.client = MagicClient(*args)
@@ -25,7 +26,7 @@ class AccountClient(object):
 
     def load_thread(self):
         log.trace("begin %s", self.func_name)
-        if len(self.data) >= 1:
+        if len(self.data) >= self.limit:
             log.trace("skip %s", self.func_name)
             time.sleep(3)
             return
@@ -43,7 +44,7 @@ class AccountClient(object):
     def load_accounts(self):
         while True:
             try:
-                data = getattr(self.client, self.func_name)(1)
+                data = getattr(self.client, self.func_name)(self.limit)
                 if not data:
                     log.trace('load %s not data', self.func_name)
                     time.sleep(3)
