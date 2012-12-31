@@ -1,11 +1,7 @@
-from django.contrib.admin.widgets import AdminFileWidget
+from django.contrib.admin.widgets import AdminFileWidget, AdminTextareaWidget, AdminURLFieldWidget
 from django.utils.safestring import mark_safe
 from django.conf import settings
 from django.utils.translation import ugettext as _
-try:
-    from PIL import Image
-except:
-    pass
 import os
 
 class AdminImageWidget(AdminFileWidget):
@@ -28,3 +24,24 @@ class AdminImageWidget(AdminFileWidget):
             
         output.append(super(AdminFileWidget, self).render(name, value, attrs))
         return mark_safe(u''.join(output))
+
+class AdminImageURLFieldWidget(AdminURLFieldWidget):
+    """
+    A FileField Widget that displays an image instead of a file path
+    if the current file is an image.
+    """
+    def render(self, name, value, attrs=None):
+        output = []
+
+        if value:
+            output.append('<a target="_blank" href="%(value)s"><img src="%(value)s" width="100px" /></a> ' % locals())
+        else:
+            output.append(super(AdminImageURLFieldWidget, self).render(name, value, attrs))
+        return mark_safe(u''.join(output))
+
+
+
+class HTMLTextareaWidget(AdminTextareaWidget):
+    class Media:
+        extend = False
+        js = ('js/tiny_mce/tiny_mce.js', 'js/tiny_mce_init.js',)

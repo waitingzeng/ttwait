@@ -63,6 +63,19 @@ class CustomQuerySet(QuerySet):
         obj.is_simple_info = getattr(self, 'is_simple_info', True)
         return obj
 
+    def get_or_none(self, **kwargs):
+        try:
+            return self.get(**kwargs)
+        except:
+            import traceback
+            traceback.print_exc(10)
+            return None
+
+    def get_first(self, *args, **kwargs):
+        objs = list(self.filter(*args, **kwargs)[:1])
+        if not objs:
+            return None
+        return objs[0]
 
 class CustomRawQuerySet(RawQuerySet, CustomBase):
 
@@ -135,6 +148,12 @@ class ModelManager(models.Manager):
 
     def get_all_fields_name(self):
         return [x.name for x in self.model._meta.fields if x.editable and not isinstance(x, models.ForeignKey)]
+
+    def get_or_none(self, **kwargs):
+        return self.get_query_set().get_or_none(**kwargs)
+
+    def get_first(self, *args, **kwargs):
+        return self.get_query_set().get_first()
 
 def main():
     from mfhui_admin.reviews.models import Reviews

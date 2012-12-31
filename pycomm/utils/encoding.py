@@ -125,3 +125,13 @@ def filepath_to_uri(path):
     # some flexibility for hardcoding separators.
     return urllib.quote(smart_str(path).replace("\\", "/"), safe="/~!*()'")
 
+def any_to_unicode(s):
+    import chardet
+    if isinstance(s, (unicode, type(None))):
+        return s
+    ret = chardet.detect(s)
+    if ret['encoding'] == 'ascii':
+        return s
+
+    return s.decode(ret['encoding'], 'ignore')
+

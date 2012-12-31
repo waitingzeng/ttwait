@@ -25,7 +25,6 @@ class UrlsHelper(object):
         return n.strip('_').lower()
 
     def get_base_urls(self, handler, controller_path):
-        print inspect.getsourcefile(handler)
         abspath = osp.abspath(inspect.getsourcefile(handler)).lower()
         abspath = abspath.replace('\\', '/')
 
@@ -50,6 +49,7 @@ class UrlsHelper(object):
         if urls:
             for url in urls:
                 yield (url, handler)
+            return
         
 
         
