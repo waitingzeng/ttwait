@@ -113,16 +113,16 @@ class ProcBase(object):
     
     def worker( self, id=0): 
         name = self.get_worker_name(id)
-        log.trace('worker[%s] begin running' % ( name,) )
+        log.debug('worker[%s] begin running' % ( name,) )
 
         self.begin_run_worker(name, id)
         count = 0
         while self.running:
             count += 1
-            log.trace( '%s is doing his job for %d times...' % ( name, count ) )
+            log.debug( '%s is doing his job for %d times...' % ( name, count ) )
 
             if self.loop_number > 0 and count > self.loop_number:
-                log.trace( '%s loop %d times, exit' % ( name, self.loop_number) ); 
+                log.debug( '%s loop %d times, exit' % ( name, self.loop_number) ); 
                 break
             try:
                 self.work(name, id)
