@@ -24,9 +24,9 @@ class AccountClient(object):
         self.data = []
 
     def load_thread(self):
-        log.trace("begin %s", self.func_name)
+        log.debug("begin %s", self.func_name)
         if len(self.data) >= self.limit:
-            log.trace("skip %s", self.func_name)
+            log.debug("skip %s", self.func_name)
             time.sleep(3)
             return
         try:
@@ -187,8 +187,7 @@ class Application(ThreadBase):
                         self.accounts.update_contact(account, num)
                 
                     self.total += 1
-                    if self.total % 20 == 0:
-                        log.trace('%s add %s success friends %s', account, to_email, num)
+                    log.trace('%s add %s success friends %s', account, to_email, num)
 
                 #else:
                 #    log.trace('%s add %s fail ret %s friends %s', account, to_email, ret, num)
