@@ -127,6 +127,8 @@ class Application(ProcPool):
             cli = MagicClient(host, self.conf.port)
             exec('pprint(cli.%s)' % self.options.command)
             sys.exit(0)
+        else:
+            self.work('server', 1)
 
 def main():
     app = Application()

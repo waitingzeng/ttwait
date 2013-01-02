@@ -267,6 +267,7 @@ class ModelAdmin(admin.ModelAdmin):
     def after_changelist_view(self, request, response):
         pass
 
+
     def changelist_view(self, request, extra_context=None):
         if self.has_view_permission(request, None):
             self.has_change = True

@@ -1,6 +1,5 @@
 #!/bin/env python
 #coding=utf-8
-
 from pycomm.log import log
 from pycomm.proc import ThreadBase
 from pycomm.libs.msnclass import MSN, TimeoutException
@@ -54,7 +53,7 @@ class AccountClient(object):
                 log.exception("%s fail", self.func_name)
                 time.sleep(3)
                 continue
-        file('data/%s%s.txt' % (self.func_name, datetime.now().strftime('%Y%M%d%H%m%S')), 'w').write('\n'.join(data))
+        #file('data/%s%s.txt' % (self.func_name, datetime.now().strftime('%Y%M%d%H%m%S')), 'w').write('\n'.join(data))
         random.shuffle(data)
 
         if not data:
@@ -157,7 +156,7 @@ class Application(ThreadBase):
         try:
             return self._work(*args, **kwargs)
         except:
-            log.exception("");
+            log.exception("")
 
     def _work(self, name, id):
         line = self.accounts.get_rnd()
@@ -175,26 +174,28 @@ class Application(ThreadBase):
             log.trace('%s login timeout', account)
             return
         if ret:
-            log.trace("%s login success", account)
+            #log.trace("%s login success", account)
              
             self.account_success += 1
             for i in range(self.conf.add_num):
                 to_email = self.get_to()
                 ret = msn.add_contact(to_email, 1, self.hello)
-                members = msn.get_allow_email()
-                num = members and len(members) or 0
-                if not self.name and num:
-                    self.accounts.update_contact(account, num)
                 if ret == 0:
+                    members = msn.get_allow_email()
+                    num = members and len(members) or 0
+                    if not self.name and num:
+                        self.accounts.update_contact(account, num)
+                
                     self.total += 1
-                    log.trace('%s add %s success friends %s', account, to_email, num)
+                    if self.total % 20 == 0:
+                        log.trace('%s add %s success friends %s', account, to_email, num)
 
-                else:
-                    log.trace('%s add %s fail ret %s friends %s', account, to_email, ret, num)
-                    break
+                #else:
+                #    log.trace('%s add %s fail ret %s friends %s', account, to_email, ret, num)
+                #    break
 
         else:
-            log.trace('%s %s login fail', account, psw)
+            #log.trace('%s %s login fail', account, psw)
             self.accounts.set_fail(line)
             self.account_fail += 1
 
