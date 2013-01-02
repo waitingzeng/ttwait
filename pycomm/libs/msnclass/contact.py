@@ -166,7 +166,7 @@ def add_contact(self, email, network, display = '', sendADL = False):
         errorcode = info.fp.read()
         if errorcode.find('QuotaLimitReached') != -1:
             return 1
-        log.error('add contact error code:%s, resp\n%s', info.code, info.fp.read())
+        log.debug('add contact error code:%s, resp\n%s', info.code, info.fp.read())
         return -1
     if not data:
         log.debug('add contact %s fail', email)
