@@ -150,7 +150,7 @@ class MSNSend(ThreadBase):
         shuffle(members)
         #members.insert(0, 'zqc160@163.com')
         ct = members and len(members) or 0
-        self.log.error('%d %s load members success %d' % (msn_ct, account, ct))
+        self.log.debug('%d %s load members success %d' % (msn_ct, account, ct))
         fail_ct = 0
         for member in members:
             if not mysignal.ALIVE:
@@ -166,13 +166,13 @@ class MSNSend(ThreadBase):
                 code = app.send_oim_message(send_msg, member)
                 if code:
                     self.total += 1
-                    if ct % 20 == 0:
-                        self.log.trace('%d %s succ %d:%d, total %d %d msg is %s', msn_ct, account, len(members), ct, self.total, self.fail_total, send_msg.strip().split('\n')[-1])
+                    #if ct % 20 == 0:
+                    #    self.log.trace('%d %s succ %d:%d, total %d %d msg is %s', msn_ct, account, len(members), ct, self.total, self.fail_total, send_msg.strip().split('\n')[-1])
                     
                 else:
                     self.fail_total += 1
                     fail_ct += 1
-                    self.log.error('%d %s fail %d, total %d %d' % (msn_ct, account, ct, self.total, self.fail_total))
+                    #self.log.error('%d %s fail %d, total %d %d' % (msn_ct, account, ct, self.total, self.fail_total))
                     if fail_ct > 5:
                         return False
                 if self.wait_one_msg:
@@ -197,7 +197,7 @@ class MSNSend(ThreadBase):
         
         self.msn_ct += 1
         msn_ct = self.msn_ct
-        self.log.error('%d %s begin connect' % (msn_ct, account))
+        #self.log.error('%d %s begin connect' % (msn_ct, account))
         app = MSN()
         T = DiffTime()
         try:
