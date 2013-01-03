@@ -15,6 +15,7 @@ alias pptop="pp | grep -v supervisord | awk 'BEGIN{p=\"\";}{p=p\" -p \"$2 }END{p
 alias free='free -m'
 alias grep='grep --color'
 alias terr='tail -f /root/data/log/`date +%m%d%H`.log'
+alias tlog='tail -f /dev/shm/log'
 alias err='tail -f /root/data/error.log'
 alias tg='terr | grep '
 alias lh='ls -lh'
