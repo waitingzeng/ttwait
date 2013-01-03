@@ -80,7 +80,7 @@ class ProcBase(object):
     def start(self):
         self.unlink( self.pidfile )
         self.unlink( self.pidsfile )
-        if not self.debug:
+        if not self.debug and self.conf.daemon:
             print 'becoming daemon', os.getpid()
             daemonize.become_daemon()
         else:
@@ -159,6 +159,8 @@ class ProcBase(object):
         parser.add_option('--logname', dest='logname', action="store", help="the extra log name", type='string')
         parser.add_option('--logtype', dest='logtype', action="store", help="the loggint type", type='string')
         parser.add_option('--gevent', dest='gevent', action="store_true", help="run with gevent")
+        parser.add_option('--maxrunning', dest='maxrunning', action="store", help="maxrunning", type='int')
+        
         self.add_options(parser)
 
         self.options, self.args = options, args = parser.parse_args(sys.argv[1:])
