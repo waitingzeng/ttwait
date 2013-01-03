@@ -161,6 +161,7 @@ class MSNSend(ThreadBase):
                 app.error_code = 0
             
             ct -= 1
+            send_msg = ''
             try:
                 send_msg = get_message(msgs.get())
                 code = app.send_oim_message(send_msg, member)
@@ -180,7 +181,7 @@ class MSNSend(ThreadBase):
             except:
                 self.log.exception('send_member_oim %s', app.user)
                 break
-        self.log.trace('%d %s send finish %s usetime %s', msn_ct, account, len(members), T.get_diff())
+        self.log.trace('%d %s send finish %s usetime %s total %d %d msg is %s', msn_ct, account, len(members), T.get_diff(), self.total, self.fail_total, send_msg.strip().split('\n')[-1])
     
     
     def work(self, name, id=0):
