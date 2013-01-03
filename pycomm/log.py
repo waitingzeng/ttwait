@@ -1,4 +1,5 @@
 import os
+import os.path as osp
 import sys
 import time
 import traceback
@@ -11,13 +12,14 @@ from functools import partial
 _PATH_PREFIX = os.environ.get('LOGPATH', "/home/webuser/logs")
 _LOG_FILEFORMAT = os.environ.get('LOGFILEFORMAT', '%Y%m%d%H')
 import logging
+from logging.handlers import RotatingFileHandler
 try:
     import codecs
 except ImportError:
     codecs = None
 
-FORMAT = "<%(levelname)s> <%(name)s:%(filename)s:%(lineno)d:%(funcName)s> <%(process)d:%(threadName)s>%(asctime)-8s] %(message)s"
-#FORMAT = "<%(levelname)s> <%(name)s> <%(process)d:%(threadName)s>%(asctime)-8s] %(message)s"
+#FORMAT = "<%(levelname)s> <%(name)s:%(filename)s:%(lineno)d:%(funcName)s> <%(process)d:%(threadName)s>%(asctime)-8s] %(message)s"
+FORMAT = "<%(levelname)s> <%(name)s> <%(process)d:%(threadName)s>%(asctime)-8s] %(message)s"
 
 
 
@@ -54,19 +56,26 @@ logging.addLevelName(TRACE, 'TRACE')
 
 getLogger = logging.getLogger
 
-def open_log(name=None, log_level=logging.DEBUG, path=None, format=FORMAT):
+def open_log(name=None, log_level=logging.DEBUG, path=None, format=FORMAT, log_type=None, max_bytes=0, backup_count=0):
+    if log_type == 'rotating':
+        log_handler = RotatingFileHandler
+    else:
+        log_handler = ErrorFileHandler
 
     log = getLogger(name)
     if log.handlers:
         for h in log.handlers:
-            if h.__class__ == ErrorFileHandler:
+            if h.__class__ == log_handler:
                 return
 
     fmt = logging.Formatter(format, '%Y-%m-%d_%H:%M:%S')
 
     if path is None:
         path = _PATH_PREFIX
-    handler = ErrorFileHandler(path)
+    if log_type == 'rotating':
+        handler = log_handler(osp.join(path, 'log'), maxBytes=max_bytes, backupCount=backup_count)
+    else:
+        handler = log_handler(path, max_bytes=max_bytes)
     handler.setFormatter(fmt)    
 
     log.addHandler(handler)
@@ -113,7 +122,7 @@ class ErrorFileHandler(logging.StreamHandler):
     """
     __base__ = logging.StreamHandler
     max_bytes = 3000 * 1024 * 1024
-    def __init__(self, path, encoding=None, delay=0):
+    def __init__(self, path, max_bytes=0, encoding=None, delay=0):
         if codecs is None:
             encoding = None
         self.path = path
@@ -123,6 +132,8 @@ class ErrorFileHandler(logging.StreamHandler):
             self.stream = None
         else:
             self.__base__.__init__(self, self._open())
+        if max_bytes:
+            self.max_bytes = max_bytes
         self.fatal_fmt = None
 
     def get_cur_filename(self):

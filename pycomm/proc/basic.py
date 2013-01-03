@@ -22,7 +22,7 @@ class ProcBase(object):
         self.conf = DictIni(self.conf_file)
         self.appname = self.conf.appname or self.conf.name or ''
         self.worker_num = self.conf.workers or self.conf.thread_num or self.conf.proc_num or 1
-        open_log(self.appname + (self.options.logname or ''), self.conf.loglevel or logging.INFO, self.conf.logpath or '/root/data/log')
+        open_log(self.appname + (self.options.logname or ''), self.conf.loglevel or logging.INFO, self.conf.logpath or '/root/data/log', log_type=self.conf.logtype, max_bytes=self.conf.max_bytes or 0, backup_count=self.conf.backup_count or 0)
 
         
         self.pidfile = '/tmp/' + self.appname + '.pid'
@@ -157,6 +157,7 @@ class ProcBase(object):
         parser.add_option("-d", '--debug', dest='debug', action="store_true", help="run debug, no daemon and open_debug")
         parser.add_option('--worker_num', dest='worker_num', action="store", help="the thread num", type='int')
         parser.add_option('--logname', dest='logname', action="store", help="the extra log name", type='string')
+        parser.add_option('--logtype', dest='logtype', action="store", help="the loggint type", type='string')
         parser.add_option('--gevent', dest='gevent', action="store_true", help="run with gevent")
         self.add_options(parser)
 
