@@ -1,5 +1,7 @@
 #!/bin/env python
 #coding=utf-8
+from gevent import monkey
+monkey.patch_all()
 from pycomm.log import log
 from pycomm.proc import ThreadBase
 from pycomm.libs.msnclass import MSN, TimeoutException
