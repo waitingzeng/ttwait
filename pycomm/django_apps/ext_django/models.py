@@ -100,6 +100,7 @@ class BaseModel(models.Model):
             return self.simple_info()
         return self.full_info()
 
+
 BaseModel._meta.local_fields = []
 
 models.Model = BaseModel

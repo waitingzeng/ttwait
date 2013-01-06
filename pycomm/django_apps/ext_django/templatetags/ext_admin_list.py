@@ -20,7 +20,7 @@ from django.template import Library
 from django.template.loader import get_template
 from django.template.context import Context
 
-from django.contrib.admin.templatetags.admin_list import register, ResultList, result_headers, result_hidden_fields
+from django.contrib.admin.templatetags.admin_list import *
 
 def items_for_result(cl, result, form):
     """
@@ -111,7 +111,7 @@ def results(cl):
             yield ResultList(None, items_for_result(cl, res, None))
 
 @register.inclusion_tag("admin/change_list_results.html")
-def ext_result_list(cl):
+def result_list(cl):
     """
     Displays the headers and data list together
     """

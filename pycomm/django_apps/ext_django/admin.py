@@ -13,12 +13,16 @@ from django.utils.encoding import force_text
 from pycomm.utils.pprint import pformat
 from pycomm.log import log, PrefixLog
 from django.contrib.admin.views.main import ALL_VAR
-
+from actions import csv_export_selected
 
 
 class ModelAdmin(admin.ModelAdmin):
     list_export_fields = None
     stat_list_filter = None
+
+    class Media:
+        css = { "all" : ("css/custom.css",) }
+        js = ("js/custom.js",) 
 
     def __init__(self, *args, **kwargs):
         admin.ModelAdmin.__init__(self, *args, **kwargs)
@@ -98,19 +102,18 @@ class ModelAdmin(admin.ModelAdmin):
 
         info = self.model._meta.app_label, self.model._meta.module_name
         export_url = patterns('',
-            url(r'^export/$',
-                self.wrap(self.export_view),
-                name='%s_%s_export' % info),
             url(r'^stat/$',
                 self.wrap(self.stat_view),
                 name='%s_%s_stat' % info),
         )
 
         urlpatterns = self.get_custom_urls(info)
+        print urlpatterns
         if not urlpatterns:
             return  export_url + admin.ModelAdmin.get_urls(self)
         else:
             return export_url + urlpatterns + admin.ModelAdmin.get_urls(self)
+
         return urlpatterns
 
     def get_hasperm_url(self, request, obj):
@@ -133,30 +136,27 @@ class ModelAdmin(admin.ModelAdmin):
         return extra_info
 
     def get_export_fields(self, request):
+        fields = [(x.name, x.verbose_name) for x in self.opts.fields]
+        
         if not self.list_export_fields:
-            self.list_export_fields = []
+            return fields
 
-        fields = [{'name' : x.name, 'verbose_name' : x.verbose_name} for x in self.opts.fields]
-
-        for name in dir(self):
-            attr = getattr(self, name)
-            if not getattr(attr, 'allow_export', False):
-                continue
-            if hasattr(attr, '__name__'):
-                verbose_name = attr.__name__
+        dict_fields = dict(fields)
+        fields = []
+        for field in self.list_export_fields:
+            if field in dict_fields:
+                fields.append([field, dict_fields[field]])
             else:
-                verbose_name = name
-            fields.append({'name' : name, 'verbose_name' : verbose_name})
-
-        if self.list_export_fields:
-            fields = [x for x in fields if x['name'] in self.list_export_fields]
-
+                func = getattr(self, field, None)
+                if not func or not callable(func):
+                    raise Exception("Not Found Field %s in %s" % (field, self.__class__.__name__))
+                fields.append((field, func.__name__))
         return fields
 
-    def export_model(self, model, queryset, list_display):
+    def export_model(self, model, queryset, list_display, model_admin=None):
         opts = model._meta
         app_label = opts.app_label
-        cl = QuerySetChangeList(model, queryset, list_display)
+        cl = QuerySetChangeList(model, queryset, list_display, model_admin=model_admin)
         
         context = {
             'cl' : cl,
@@ -169,56 +169,7 @@ class ModelAdmin(admin.ModelAdmin):
         response.render()
         return response.content
 
-    def export_fields(self, request, list_display):
-        request.GET = dict(request.GET.items())
-        opts = self.model._meta
-        app_label = opts.app_label
-        raw = request.GET.pop('raw', [''])[0]
-        request.GET[ALL_VAR] = 1
-        cl = ExportChangeList(self, request, list_display=list_display)
-        
-        context = {
-            'cl' : cl,
-        }
-
-        response = TemplateResponse(request,  [
-            "admin/%s/%s/export_result.html" % (app_label, opts.object_name.lower()),
-            "admin/%s/export_result.html" % app_label,
-            "admin/export_result.html"
-        ], context,
-        current_app=self.admin_site.name)
-        if raw != '1':
-            response.mimetype='application/octet-stream; charset=utf-8'
-            response['Content-Disposition'] = 'attachment; filename=%s.xls' % self.opts.object_name.lower()
-        return response
-
-    @csrf_protect_m
-    def export_view(self, request):
-        if not self.has_export_permission(request):
-            raise PermissionDenied
-        opts = self.model._meta
-        app_label = opts.app_label
-        if request.method == 'POST':
-            list_display = request.POST.getlist('fieldlist')
-            return self.export_fields(request, list_display)
-            
-        else:
-            path = request.get_full_path().split('?')
-            if len(path) == 2:
-                params = '?' + path[1]
-            else:
-                params = ''
-            context = {
-                'fields' : self.get_export_fields(request),
-                'params' : params,
-                'app_label': app_label,
-                'media': self.media,
-            }
-            return TemplateResponse(request, [
-        "admin/%s/%s/export.html" % (app_label, opts.object_name.lower()),
-        'admin/%s/export.html' % app_label,
-        "admin/export.html"], context, current_app=self.admin_site.name)
-
+    
     def get_chartit(self, request, cl):
         raise NotImplementedError
 
@@ -323,6 +274,12 @@ class ModelAdmin(admin.ModelAdmin):
             return ret
         return response
 
+
+    def get_actions(self, request):
+        actions = super(ModelAdmin, self).get_actions(request)
+        if self.has_export_permission(request):
+            actions[csv_export_selected.__name__] = (csv_export_selected, csv_export_selected.__name__, csv_export_selected.short_description)
+        return actions
 
 site = admin.site
 TabularInline = admin.TabularInline

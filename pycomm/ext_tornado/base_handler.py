@@ -10,6 +10,9 @@ from pycomm.utils.user_agent import UserAgent
 from pycomm.utils.storage import Storage
 from urls_helper import urls_helper
 import ujson as json
+from pycomm.utils.decorator import decorator
+from tornado import stack_context
+
 
 
 class UrlHandlerType(type):
@@ -19,6 +22,14 @@ class UrlHandlerType(type):
             urls_helper.add_handler(res)
         return res
     
+@decorator
+def asynchronous(method, self, *args, **kwargs):    
+    if self.application._wsgi:
+        raise Exception("@asynchronous is not supported for WSGI apps")
+    self._auto_finish = False
+    with stack_context.ExceptionStackContext(
+        self._stack_context_handle_exception):
+        return method(self, *args, **kwargs)
 
 class BaseHandler(RequestHandler):
     __metaclass__ = UrlHandlerType

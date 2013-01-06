@@ -7,7 +7,13 @@
     z-index : 12000;
 }
 </style>
-
+<script type="text/javascript">
+(function($) {
+    $(document).ready(function() {
+            grappelli.initDateAndTimePicker();
+    });
+})(grp.jQuery);
+</script>
 <h3>{% blocktrans with filter_title=title %} By {{ filter_title }} {% endblocktrans %}</h3>
 <style>
     .calendarbox {

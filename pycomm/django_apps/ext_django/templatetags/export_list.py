@@ -48,10 +48,9 @@ def items_for_result(cl, result):
         if force_text(result_repr) == '':
             result_repr = mark_safe('')
         # If list_display_links not defined, add the link tag to the first field
-        result_repr = '%s' % result_repr
-        if result_repr.find('__proxy__') != -1:
+        if str(result_repr).find('__proxy__') != -1:
             result_repr = ''
-        if result_repr.isdigit() and len(result_repr) > 10 :
+        if str(result_repr).isdigit() and len(str(result_repr)) > 10 :
             result_repr = '"%s"' % result_repr
         yield format_html('<td{0}>{1}</td>', row_class, result_repr)
 

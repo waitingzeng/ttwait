@@ -87,3 +87,10 @@ django.contrib.admin.site._registry = registry
 django.contrib.admin.site.index = index_decorator(admin.site.index)
 django.contrib.admin.site.app_index = index_decorator(admin.site.app_index)
 
+
+#replace admin list result list
+from django.contrib.admin.templatetags import admin_list
+from templatetags import ext_admin_list
+admin_list.result_list = ext_admin_list.result_list
+
+
