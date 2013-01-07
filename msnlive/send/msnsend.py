@@ -1,5 +1,6 @@
 #!/bin/env python
 #coding=utf8
+from pycomm.libs.rpc import MagicClient
 from gevent import monkey
 monkey.patch_all()
 import sys
@@ -14,7 +15,6 @@ from pycomm.utils.dict4ini import DictIni
 from pycomm.libs.msnclass import MSN, TimeoutException
 from pycomm.libs.msnclass.message import get_message
 from pycomm.utils.tracktime import DiffTime
-from pycomm.libs.rpc import MagicClient
 from messagecache import  MuchMessageCache
 from pycomm.utils.accounttext import RandomAccountNotMembery, NotDataException
 from pycomm.utils import textfile

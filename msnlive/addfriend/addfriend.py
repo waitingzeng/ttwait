@@ -1,11 +1,11 @@
 #!/bin/env python
 #coding=utf-8
+from pycomm.libs.rpc import MagicClient
 from gevent import monkey
 monkey.patch_all()
 from pycomm.log import log
 from pycomm.proc import ThreadBase
 from pycomm.libs.msnclass import MSN, TimeoutException
-from pycomm.libs.rpc import MagicClient
 from pycomm import signal as mysignal
 from pycomm.utils import textfile
 from pycomm.utils.tracktime import DiffTime
