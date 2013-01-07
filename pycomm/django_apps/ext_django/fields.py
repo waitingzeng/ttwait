@@ -170,13 +170,9 @@ from pycomm.utils.cache import SimpleFileBasedCache
 
 
 class CustomImageField(models.ImageField):
-    def __init__(self, *args, **kwargs):
-        models.ImageField.__init__(self, *args, **kwargs)
-        self.img_cache = SimpleFileBasedCache(self.get_directory_name(), '.jpg')
-
     def get_filename(self, filename):
         key = '%s%s' % (random.random(), filename)
-        return self.img_cache.name_to_key(key)
+        return SimpleFileBasedCache.name_to_key(key, '.jpg')
 
     def __unicode__(self):
         return ''

@@ -161,8 +161,6 @@ class Command(NoArgsCommand):
 
         # Alter the tables for each model
         for app_name, model_list in all_models:
-            if app_name and app_name != db:
-                continue
 
             for model in model_list:
                 if target_model and not model.__name__.lower().startswith(target_model):

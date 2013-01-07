@@ -24,15 +24,24 @@ class Command(AppCommand):
         outputs.append("    date_hierarchy = %s" % admin.date_hierarchy)
 
         outputs.append("")
-        outputs.append("admin.site.register(%s, %s)" % (admin.__name__[:-5], admin.__name__))
+        outputs.append("admin.site.register(models.%s, %s)" % (admin.__name__[:-5], admin.__name__))
         return '\n'.join(outputs)
+
+    def handle(self, *app_labels, **options):
+        self.app_labels = app_labels
+        return AppCommand.handle(self, *app_labels, **options)
 
     def handle_app(self, app, **options):
 
-        admins = auto_admin_for_models(app)
-        outputs = []
+        admins = auto_admin_for_models(app, self.app_labels)
+        outputs = ["#!/usr/bin/python", 
+                    "#coding=utf8", 
+                    "from pycomm.django_apps.ext_django import admin",
+                    "import models"]
         for admin in admins:
-            outputs.append(self.get_def_from_admin(admin))
+            output = self.get_def_from_admin(admin)
+            if output:
+                outputs.append(output)
 
         print '\n\n'.join(outputs)
             

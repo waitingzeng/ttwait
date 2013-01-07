@@ -308,10 +308,11 @@ def create_admin_models(model):
     #    AutoModelAdmin.date_hierarchy = getattr(model, 'date_hierarchy', None) or datetime_fields[0]
     return AutoModelAdmin
 
-def auto_admin_for_models(app_models, register=True):
+def auto_admin_for_models(app_models, app_labels=None, register=True):
     admins = []
     for name in dir(app_models):
         model = getattr(app_models, name)
+    
         if getattr(model, 'noadmin', False):
             continue
         
@@ -320,6 +321,10 @@ def auto_admin_for_models(app_models, register=True):
 
             if opt.abstract:
                 continue
+
+            if app_labels and opt.app_label not in app_labels:
+                continue
+
 
             model_admin = create_admin_models(model)
 

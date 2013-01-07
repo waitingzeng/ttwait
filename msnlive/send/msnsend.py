@@ -40,7 +40,7 @@ class AccountClient(object):
                 time.sleep(3)
                 continue
         shuffle(self.data)
-        file('data/send_accounts%s.txt' % (datetime.now().strftime('%Y%M%d%H%m%S')), 'w').write('\n'.join(self.data))
+        #file('data/send_accounts%s.txt' % (datetime.now().strftime('%Y%M%d%H%m%S')), 'w').write('\n'.join(self.data))
 
         if not self.data:
             raise Exception('Not Data Left')

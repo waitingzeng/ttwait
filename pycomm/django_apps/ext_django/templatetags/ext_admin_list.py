@@ -50,6 +50,8 @@ def items_for_result(cl, result, form):
                     result_repr = mark_safe(result_repr)
                 if isinstance(value, (datetime.date, datetime.time)):
                     row_class = mark_safe(' class="nowrap"')
+            elif hasattr(result, 'get_%s_display' % field_name):
+                result_repr = getattr(result, 'get_%s_display' % field_name)()
             else:
                 if isinstance(f.rel, models.ManyToOneRel):
                     field_val = getattr(result, f.name)
@@ -57,6 +59,7 @@ def items_for_result(cl, result, form):
                         result_repr = EMPTY_CHANGELIST_VALUE
                     else:
                         result_repr = field_val
+
                 else:
                     result_repr = display_for_field(value, f)
                 if isinstance(f, (models.DateField, models.TimeField, models.ForeignKey)):

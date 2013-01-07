@@ -1,27 +1,38 @@
-from .widgets import ChainedSelect
-from django.forms.models import ModelChoiceField
+from .widgets import ChainedSelect, ChainedMultipleSelect
+from django.forms.models import ModelChoiceField, ModelMultipleChoiceField
 from django.forms import ChoiceField
 from django.db.models import get_model
 
 
-class ChainedModelChoiceField(ModelChoiceField):
-    def __init__(self, app_name, model_name, chain_field, model_field, show_all, auto_choose, manager=None, initial=None, *args, **kwargs):
-        defaults = {
-            'widget': ChainedSelect(app_name, model_name, chain_field, model_field, show_all, auto_choose, manager),
-        }
-        defaults.update(kwargs)
-        if not 'queryset' in kwargs:
-            queryset = get_model(app_name, model_name).objects.all()
-            super(ChainedModelChoiceField, self).__init__(queryset=queryset, initial=initial, *args, **defaults)
-        else:
-            super(ChainedModelChoiceField, self).__init__(initial=initial, *args, **defaults)
+def __get_class(BaseCLS, widget, name):
+    class AutoClass(BaseCLS):
+        def __init__(self, app_name, model_name, chain_field, model_field, show_all, auto_choose, manager=None, initial=None, *args, **kwargs):
+            limit_choices_to = kwargs.pop('limit_choices_to', {})
+            defaults = {
+                'widget': widget(app_name, model_name, chain_field, model_field, show_all, auto_choose, manager, limit_choices_to=limit_choices_to),
+            }
+            defaults.update(kwargs)
+            if not 'queryset' in kwargs:
+                queryset = get_model(app_name, model_name).objects.all()
+                BaseCLS.__init__(self, queryset=queryset, initial=initial, *args, **defaults)
+            else:
+                BaseCLS.__init__(self, initial=initial, *args, **defaults)
 
-    def _get_choices(self):
-        self.widget.queryset = self.queryset
-        choices = super(ChainedModelChoiceField, self)._get_choices()
-        return choices
-    choices = property(_get_choices, ChoiceField._set_choices)
+        def _get_choices(self):
+            widget.queryset = self.queryset
+            choices = BaseCLS._get_choices(self)
+            return choices
+        choices = property(_get_choices, ChoiceField._set_choices)
 
+        def __repr__(self):
+            return object.__repr__(self).replace('AutoClass', name)
+
+    AutoClass.__name__ = name
+    return AutoClass
+
+ChainedModelChoiceField = __get_class(ModelChoiceField, ChainedSelect, 'ChainedModelChoiceField')
+
+ChainedModelMultipleChoiceField = __get_class(ModelMultipleChoiceField, ChainedMultipleSelect, 'ChainedModelMultipleChoiceField')
 
 class GroupedModelSelect(ModelChoiceField):
     def __init__(self, queryset, order_field, *args, **kwargs):

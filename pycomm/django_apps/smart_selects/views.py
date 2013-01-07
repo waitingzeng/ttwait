@@ -10,6 +10,13 @@ def filterchain(request, app, model, field, value, manager=None):
         keywords = {str("%s__isnull" % field):True}
     else:
         keywords = {str(field): str(value)}
+
+    params = dict(request.GET)
+    for k, v in params.items():
+        params[k] = v[0]
+
+    keywords.update(params)    
+
     if manager is not None and hasattr(Model, manager):
         queryset = getattr(Model, manager).all()
     else:
