@@ -13,17 +13,18 @@ class WorkerFinishException(Exception):
     pass
 
 class ProcBase(object):
-    def __init(self, config_file):
+    def __init(self, config_file=None):
         
         self.debug = False
-        if not osp.exists(config_file):
+        if config_file and not osp.exists(config_file):
             raise Exception('%s does not exists', config_file)
         self.conf_file = config_file
         self.conf = DictIni(self.conf_file)
-        self.appname = self.conf.appname or self.conf.name or ''
+        self.appname = self.options.logname or self.conf.appname or self.conf.name or self.__class__.__name__
         self.worker_num = self.conf.workers or self.conf.thread_num or self.conf.proc_num or 1
-        open_log(self.appname + (self.options.logname or ''), self.conf.loglevel or logging.INFO, self.conf.logpath or '/root/data/log', log_type=self.conf.logtype, max_bytes=self.conf.max_bytes or 0, backup_count=self.conf.backup_count or 0)
+        open_log(self.appname, self.conf.loglevel or logging.INFO, self.conf.logpath or '/root/data/log', log_type=self.conf.logtype, max_bytes=self.conf.max_bytes or 0, backup_count=self.conf.backup_count or 0)
 
+        
         
         self.pidfile = '/tmp/' + self.appname + '.pid'
         self.pidsfile = '/tmp/' + self.appname + '.pids'
@@ -128,6 +129,7 @@ class ProcBase(object):
                 self.work(name, id)
             except WorkerFinishException:
                 log.trace('%s finish' % name)
+                self.worker_num -= 1
                 break
             except:
                 log.exception('%s had some error', name)
@@ -151,6 +153,7 @@ class ProcBase(object):
         self.parser = parser = OptionParser(conflict_handler='resolve')
         parser.add_option("-i", "--conf", dest="conf", action="store",
                   help="[MUST] the conf file to setup", type="string")
+        parser.add_option("-h", '--help', dest='help', action="store_true", help="show help")
         parser.add_option("-r", '--restart', dest='restart', action="store_true", help="restart")
         parser.add_option("-s", '--stop', dest='stop', action="store_true", help="stop")
         parser.add_option('--test', dest='test', action="store_true", help="run test")
@@ -164,10 +167,12 @@ class ProcBase(object):
         self.add_options(parser)
 
         self.options, self.args = options, args = parser.parse_args(sys.argv[1:])
-        if not options.conf:
-            parser.print_help()
-            sys.exit(-1)
         
+        if options.help:
+            parser.print_help()
+            sys.exit(-2)
+            return
+
         if self.process_options(options, args):
             parser.print_help()
             sys.exit(-2)
