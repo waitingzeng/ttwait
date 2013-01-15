@@ -51,7 +51,7 @@ wget http://pypi.python.org/packages/2.6/s/setuptools/setuptools-0.6c11-py2.6.eg
 
 sh setuptools-0.6c11-py2.6.egg
 
-easy_install-2.6 cython pyquery ClientForm readline supervisor
+easy_install-2.6 cython pyquery ClientForm readline supervisor tornado
 
 cd /root/src
 wget http://gevent.googlecode.com/files/gevent-1.0b2.tar.gz
@@ -98,6 +98,12 @@ yum install -y net-snmp net-snmp-devel net-snmp-utils
 net-snmp-config --create-snmpv3-user -ro -A TTwait846266 -a MD5 jiankongbao
 /etc/init.d/snmpd start
 snmpwalk -v 3 -u jiankongbao -a MD5 -A "TTwait846266" -l authNoPriv 127.0.0.1 sysDescr
+
+ln -s /root/data/ttwait/vpshelp/supervisord.sh /etc/init.d/supervisord
+chkconfig --add nginx
+chkconfig --add supervisord
+chkconfig nginx on
+chkconfig supervisord on
 
 cd /root/data/msnlive/data
 mkdir sender
