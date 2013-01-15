@@ -23,7 +23,8 @@ class ThreadBase(ProcBase):
         pass
 
     def after_run_worker(self,name, id):
-        self.create_worker(id)
+        #self.create_worker(id)
+        pass
 
     def main_loop(self):
         ct = 0

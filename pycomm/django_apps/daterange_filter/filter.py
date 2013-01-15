@@ -99,7 +99,6 @@ class DateRangeFilter(admin.filters.FieldListFilter):
 
 class TimeStampRangeFilter(DateRangeFilter):
     def get_form(self, request):
-        print self.used_parameters
         return DateRangeForm(data=self.used_parameters,
                              field_name=self.field_path, use_timestamp=True)
 

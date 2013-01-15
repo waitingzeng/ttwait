@@ -14,6 +14,7 @@ from pycomm.utils.pprint import pformat
 from pycomm.log import log, PrefixLog
 from django.contrib.admin.views.main import ALL_VAR
 from actions import csv_export_selected
+from django.contrib.admin import widgets
 
 
 class ModelAdmin(admin.ModelAdmin):
@@ -108,7 +109,6 @@ class ModelAdmin(admin.ModelAdmin):
         )
 
         urlpatterns = self.get_custom_urls(info)
-        print urlpatterns
         if not urlpatterns:
             return  export_url + admin.ModelAdmin.get_urls(self)
         else:
@@ -280,6 +280,23 @@ class ModelAdmin(admin.ModelAdmin):
         if self.has_export_permission(request):
             actions[csv_export_selected.__name__] = (csv_export_selected, csv_export_selected.__name__, csv_export_selected.short_description)
         return actions
+
+
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        request = kwargs.get("request", None)
+        formfield = super(ModelAdmin, self).formfield_for_dbfield(db_field, **kwargs)
+
+        if formfield and db_field.name in self.raw_id_fields:
+
+            related_modeladmin = self.admin_site._registry.get(
+                                                        db_field.rel.to)
+            can_add_related = bool(related_modeladmin and
+                        related_modeladmin.has_add_permission(request))
+            formfield.widget = widgets.RelatedFieldWidgetWrapper(
+                        formfield.widget, db_field.rel, self.admin_site,
+                        can_add_related=can_add_related)
+
+        return formfield
 
 site = admin.site
 TabularInline = admin.TabularInline

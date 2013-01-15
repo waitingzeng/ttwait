@@ -87,7 +87,6 @@ class UrlsHelper(object):
     def get_func_urls(self, get_func):
         arg = inspect.getargspec(get_func)
         args = arg.args
-        print get_func, args
         if len(args) == 1:
             return []
         args.remove('self')

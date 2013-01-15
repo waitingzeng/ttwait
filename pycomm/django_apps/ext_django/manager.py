@@ -67,8 +67,6 @@ class CustomQuerySet(QuerySet):
         try:
             return self.get(**kwargs)
         except:
-            import traceback
-            traceback.print_exc(10)
             return None
 
     def get_first(self, *args, **kwargs):

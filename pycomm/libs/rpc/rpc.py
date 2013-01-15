@@ -6,6 +6,7 @@ except ImportError:
     import json
 from pycomm.log import log
 from .server import STPServer
+from tornado.ioloop import IOLoop
 from pycomm.utils.ioloop import ioloop
 
 class Application(object):

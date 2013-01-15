@@ -2,6 +2,8 @@
 #coding=utf8
 from django.contrib import admin
 from django.core.exceptions import ValidationError
+from .fields import MultiSelectField
+from django.utils.encoding import smart_text
 
 
 
@@ -40,3 +42,32 @@ class UnixTimeIntervalFilter(admin.filters.FieldListFilter):
                 'display': k,
             }
        
+class MultiSelectFieldListFilter(admin.filters.FieldListFilter):
+    def __init__(self, field, request, params, model, model_admin, field_path):
+        self.lookup_kwarg = '%s__icontains' % field_path
+        self.lookup_val = request.GET.get(self.lookup_kwarg)
+        super(MultiSelectFieldListFilter, self).__init__(
+            field, request, params, model, model_admin, field_path)
+
+    def expected_parameters(self):
+        return [self.lookup_kwarg]
+
+    def choices(self, cl):
+        yield {
+            'selected': self.lookup_val is None,
+            'query_string': cl.get_query_string({}, [self.lookup_kwarg]),
+            'display': '全部'
+        }
+        for lookup, title in self.field.flatchoices:
+            lookup = '%s,' % lookup
+            yield {
+                'selected': smart_text(lookup) == self.lookup_val,
+                'query_string': cl.get_query_string({
+                                    self.lookup_kwarg: lookup}),
+                'display': title,
+            }
+
+admin.filters.FieldListFilter.register(lambda f: isinstance(f, MultiSelectField), MultiSelectFieldListFilter, take_priority=9999)
+
+
+

@@ -36,6 +36,8 @@ class AdminImageURLFieldWidget(AdminURLFieldWidget):
         output = []
 
         if value:
+            value = urlparse.urljoin(settings.MEDIA_URL, file_name)
+            
             output.append('<a target="_blank" href="%(value)s"><img src="%(value)s" width="100px" /></a> <input type="hidden" name="%(name)s" value="%(value)s" />' % locals())
         else:
             output.append(super(AdminImageURLFieldWidget, self).render(name, value, attrs))

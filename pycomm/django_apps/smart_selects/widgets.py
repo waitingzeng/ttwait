@@ -1,6 +1,7 @@
 import django
 from django.conf import settings
 from django.forms.widgets import Select, SelectMultiple
+from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.admin.templatetags.admin_static import static
 from django.core.urlresolvers import reverse
 from django.utils.encoding import iri_to_uri
@@ -54,7 +55,6 @@ def get_final_choices_m2m(self, value):
     except IndexError:
         pass
     else:
-        print item, self.model_field, self.app_name, self.model_name
         try:
             pk = getattr(item, self.model_field + "_id")
             filter = {self.model_field:pk}
@@ -183,9 +183,9 @@ class ChainedSelect(Select):
                 }
 
                 $("#id_%(chainfield)s").change(function(){
-                    var start_value = $("#%(id)s").val();
+                    //var start_value = $("#%(id)s").val();
                     var val = $(this).val();
-                    fill_field(val, start_value);
+                    fill_field(val, "%(value)s");
                 })
             })
             var oldDismissAddAnotherPopup = dismissAddAnotherPopup;
@@ -200,7 +200,6 @@ class ChainedSelect(Select):
         </script>
 
         """ % {"chainfield":chain_field, "url":url, "id":attrs['id'], 'value':value, 'auto_choose':auto_choose, 'empty_label': empty_label, 'limit_choices_to' : urllib.urlencode(self.limit_choices_to)}
-
 
         final_choices = []
         if value:
@@ -337,7 +336,7 @@ class ChainedMultipleSelect(SelectMultiple):
                 $("#id_%(chainfield)s").change(function(){
                     var start_value = $("#%(id)s").val();
                     var val = $(this).val();
-                    fill_field(val, start_value);
+                    fill_field(val, %(value)s);
                 });
             })
             var oldDismissAddAnotherPopup = dismissAddAnotherPopup;
@@ -375,6 +374,172 @@ class ChainedMultipleSelect(SelectMultiple):
         else:
             final_attrs['class'] = 'chained'
         output = SelectMultiple.render(self, name, value, final_attrs, choices=final_choices)
+        output += js
+        return mark_safe(output)
+
+
+class ChainedFilteredSelectMultiple(FilteredSelectMultiple):
+    def __init__(self, app_name, model_name, chain_field, model_field, show_all, auto_choose, manager=None, *args, **kwargs):
+        self.app_name = app_name
+        self.model_name = model_name
+        self.chain_field = chain_field
+        self.model_field = model_field
+        self.show_all = show_all
+        self.auto_choose = auto_choose
+        self.manager = manager
+        self.limit_choices_to = kwargs.pop('limit_choices_to', {})
+        FilteredSelectMultiple.__init__(self, *args, **kwargs)
+
+    class Media:
+        if USE_DJANGO_JQUERY:
+            js = [static('admin/%s' % i) for i in
+                  ('js/jquery.min.js', 'js/jquery.init.js')]
+        elif JQUERY_URL:
+            js = (
+                JQUERY_URL,
+            )
+
+    def render(self, name, value, attrs=None, choices=()):
+        if len(name.split('-')) > 1: # formset
+            chain_field = '-'.join(name.split('-')[:-1] + [self.chain_field])
+        else:
+            chain_field = self.chain_field
+
+        if self.show_all:
+            view_name = "chained_filter_all"
+        else:
+            view_name = "chained_filter"
+        kwargs = {'app':self.app_name, 'model':self.model_name, 'field':self.model_field, 'value':"1"}
+        if self.manager is not None:
+            kwargs.update({'manager': self.manager})
+        url = "/".join(reverse(view_name, kwargs=kwargs).split("/")[:-2])
+        if self.auto_choose:
+            auto_choose = 'true'
+        else:
+            auto_choose = 'false'
+        empty_label = iter(self.choices).next()[1] # Hacky way to getting the correct empty_label from the field instead of a hardcoded '--------'
+        js = """
+        <script type="text/javascript">
+        //<![CDATA[
+        (function($) {
+            function fireEvent(element,event){
+                if (document.createEventObject){
+                // dispatch for IE
+                var evt = document.createEventObject();
+                return element.fireEvent('on'+event,evt)
+                }
+                else{
+                // dispatch for firefox + others
+                var evt = document.createEvent("HTMLEvents");
+                evt.initEvent(event, true, true ); // event type,bubbling,cancelable
+                return !element.dispatchEvent(evt);
+                }
+            }
+
+            function dismissRelatedLookupPopup(win, chosenId) {
+                var name = windowname_to_id(win.name);
+                var elem = document.getElementById(name);
+                if (elem.className.indexOf('vManyToManyRawIdAdminField') != -1 && elem.value) {
+                    elem.value += ',' + chosenId;
+                } else {
+                    elem.value = chosenId;
+                }
+                fireEvent(elem, 'change');
+                win.close();
+            }
+
+            $(function(){
+                function fill_field(val, init_value){
+                    var from_id = "%(id)s_from";
+                    var to_id = "%(id)s_to";
+
+                    if (!val || val==''){
+                        options = '';
+                        $("#" + from_id).html(options);
+                        $("#" + from_id).trigger('change');
+                        return;
+                    }
+                    $.getJSON("%(url)s/"+val+"/?%(limit_choices_to)s", function(j){
+                        var options = '';
+                        for (var i = 0; i < j.length; i++) {
+                            options += '<option value="' + j[i].value + '">' + j[i].display + '<'+'/option>';
+                        }
+                        var width = $("#" + from_id).outerWidth();
+                        $("#" + from_id).html(options);
+                        if (navigator.appVersion.indexOf("MSIE") != -1)
+                            $("#" + from_id).width(width + 'px');
+
+                        console.log($("#" + from_id).size());
+                        if($("#" + from_id).size() > 0){
+                            SelectBox.init(from_id);
+
+                        }
+                        
+                        var auto_choose = %(auto_choose)s;
+                        if(init_value){
+                            for(var i=0; i< init_value.length; i++){
+                                $('#' + from_id +' option[value="'+ init_value[i] +'"]').attr('selected', 'selected');
+                            }
+                        }
+                        if(auto_choose && j.length == 1){
+                            $('#' + from_id + ' option[value="'+ j[0].value +'"]').attr('selected', 'selected');
+                        }
+                        $("#%(id)s").trigger('change');
+                        if($("#" + from_id).size() > 0){
+                            SelectBox.move(from_id, to_id);
+                        }
+                        
+                    })
+                }
+                setTimeout(function(){
+                    if(!$("#id_%(chainfield)s").hasClass("chained")){
+                        var val = $("#id_%(chainfield)s").val();
+                        fill_field(val, %(value)s);
+                    }
+                }, 0);
+                
+                
+                $("#id_%(chainfield)s").change(function(){
+                    var start_value = $("#%(id)s").val();
+                    var val = $(this).val();
+                    fill_field(val, start_value);
+                });
+            });
+            var oldDismissAddAnotherPopup = dismissAddAnotherPopup;
+            dismissAddAnotherPopup = function(win, newId, newRepr) {
+                oldDismissAddAnotherPopup(win, newId, newRepr);
+                if (windowname_to_id(win.name) == "id_%(chainfield)s") {
+                    $("#id_%(chainfield)s").change();
+                }
+            }
+        })(jQuery || django.jQuery);
+        //]]>
+        </script>
+
+        """ % {"chainfield":chain_field, "url":url, "id":attrs['id'], 'value': json.dumps(value), 'auto_choose':auto_choose, 'empty_label': empty_label, 'limit_choices_to' : urllib.urlencode(self.limit_choices_to)}
+
+
+        final_choices = []
+        #if value:
+        #    final_choices = get_final_choices_m2m(self, value)
+
+        
+        if len(final_choices) > 1:
+            final_choices = [("", (empty_label))] + final_choices
+        if self.show_all:
+            final_choices.append(("", (empty_label)))
+            self.choices = list(self.choices)
+            self.choices.sort(cmp=locale.strcoll, key=lambda x:unicode_sorter(x[1]))
+            for ch in self.choices:
+                if not ch in final_choices:
+                    final_choices.append(ch)
+        self.choices = ()
+        final_attrs = self.build_attrs(attrs, name=name)
+        if 'class' in final_attrs:
+            final_attrs['class'] += ' chained'
+        else:
+            final_attrs['class'] = 'chained'
+        output = FilteredSelectMultiple.render(self, name, value, final_attrs, choices=final_choices)
         output += js
         return mark_safe(output)
 

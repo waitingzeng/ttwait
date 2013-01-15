@@ -7,7 +7,6 @@ import sys
 check = lambda f : not f.startswith('_') and f.endswith('.py')
 
 def autodiscover(filename, filter=None):
-    print filename
     if not filter:
         filter = check
     exec_lines = []

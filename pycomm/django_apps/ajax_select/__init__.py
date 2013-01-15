@@ -31,7 +31,6 @@ class LookupChannel(object):
             in the LookupChannel class definition
         """
         kwargs = {}
-        print repr(q)
         for search_field in self.search_fields:
             kwargs = { "%s__icontains" % search_field : q.strip() }
         qs = self.model.objects.filter(**kwargs)

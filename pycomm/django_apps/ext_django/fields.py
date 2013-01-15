@@ -1,26 +1,26 @@
 #coding=utf8
+import uuid
+import urlparse
+import datetime
+import time
+import os
+import random
+import re
+
 
 from django.contrib.admin import util
-
 from django import forms
 from django.db import models
 from django.utils.translation import ugettext as _
 from django.utils.html import conditional_escape, format_html, format_html_join, mark_safe
 from django.forms.util import flatatt, to_current_timezone
 from django.contrib.admin import util
-from pycomm.utils.pprint import pformat
-import datetime
-import ujson as json
-import time
-import os
-import random
-from widget import AdminImageWidget
-
+from django.db.models.fields.related import ReverseSingleRelatedObjectDescriptor
 from django.template.defaultfilters import slugify
 from django.db.models import DateTimeField, CharField, SlugField
-import re
+from django.utils.text import capfirst
+from django.conf import settings
 
-import uuid
 
 try:
     from django.utils.timezone import now as datetime_now
@@ -28,6 +28,12 @@ except ImportError:
     import datetime
     datetime_now = datetime.datetime.now
 
+
+import ujson as json
+
+from pycomm.utils.pprint import pformat
+
+from widget import AdminImageWidget
 
 
 class ImageURLWidget(forms.widgets.TextInput):
@@ -145,6 +151,17 @@ class UnixTimestampField(models.DateTimeField):
         return ' '.join(typ)
 
 
+    def contribute_to_class(self, cls, name):
+        super(UnixTimestampField, self).contribute_to_class(cls, name)
+        def func(obj, fieldname=name):
+            value = getattr(obj,fieldname)
+            if isinstance(value, (int, long)):
+                return datetime.datetime.fromtimestamp(value)
+            return value
+        func.__name__ = self.verbose_name
+        setattr(cls, 'get_%s_display' % self.name, func)
+
+
 #    def value_from_object(self, obj):
 #        value = super(UnixTimestampField, self).value_from_object(obj)
 #        if isinstance(value, int):
@@ -153,6 +170,13 @@ class UnixTimestampField(models.DateTimeField):
 models.UnixTimestampField = UnixTimestampField
 
 
+class ZeroReverseSingleRelatedObjectDescriptor(ReverseSingleRelatedObjectDescriptor):
+    def __get__(self, instance, instance_type=None):
+        try:
+            return ReverseSingleRelatedObjectDescriptor.__get__(self, instance, instance_type)
+        except self.field.rel.to.DoesNotExist:
+            return None
+       
 
 class ZeroForeignKey(models.ForeignKey):
     def get_db_prep_save(self, value, connection):
@@ -164,7 +188,12 @@ class ZeroForeignKey(models.ForeignKey):
             return self.rel.get_related_field().get_db_prep_save(value,
                 connection=connection)
 
+    def contribute_to_class(self, cls, name):
+        super(ZeroForeignKey, self).contribute_to_class(cls, name)
+        setattr(cls, self.name, ZeroReverseSingleRelatedObjectDescriptor(self))
+
 models.ZeroForeignKey = ZeroForeignKey
+
 
 from pycomm.utils.cache import SimpleFileBasedCache
 
@@ -176,6 +205,20 @@ class CustomImageField(models.ImageField):
 
     def __unicode__(self):
         return ''
+
+
+    def contribute_to_class(self, cls, name):
+        super(CustomImageField, self).contribute_to_class(cls, name)
+        def func(obj, fieldname=name):
+            value = getattr(obj,fieldname)
+            if not value:
+                return ''
+
+            value = urlparse.urljoin(settings.MEDIA_URL, value)
+            return mark_safe('<a target="_blank" href="%(value)s"><img src="%(value)s" width="100px" /></a>' % locals())
+        func.__name__ = self.verbose_name
+        setattr(cls, 'get_%s_display' % self.name, func)
+
 
 
 
@@ -311,7 +354,7 @@ class AutoSlugField(SlugField):
         })
         # That's our definition!
         return (field_class, args, kwargs)
-
+models.AutoSlugField = AutoSlugField
 
 
 class UUIDVersionError(Exception):
@@ -394,4 +437,77 @@ class UUIDField(CharField):
         args, kwargs = introspector(self)
         # That's our definition!
         return (field_class, args, kwargs)
+models.UUIDField = UUIDField
 
+
+from django.db import models
+from django import forms
+
+class MultiSelectFormField(forms.MultipleChoiceField):
+    widget = forms.CheckboxSelectMultiple
+    
+    def __init__(self, *args, **kwargs):
+        self.max_choices = kwargs.pop('max_choices', 0)
+        super(MultiSelectFormField, self).__init__(*args, **kwargs)
+
+    def clean(self, value):
+        if not value and self.required:
+            raise forms.ValidationError(self.error_messages['required'])
+        if value and self.max_choices and len(value) > self.max_choices:
+            raise forms.ValidationError('You must select a maximum of %s choice%s.'
+                    % (apnumber(self.max_choices), pluralize(self.max_choices)))
+        return value
+
+class MultiSelectField(models.Field):
+    __metaclass__ = models.SubfieldBase
+
+    def get_internal_type(self):
+        return "CharField"
+
+    def get_choices_default(self):
+        return self.get_choices(include_blank=False)
+
+    def _get_FIELD_display(self, field):
+        value = getattr(self, field.attname)
+        choicedict = dict(field.choices)
+
+    def formfield(self, **kwargs):
+        # don't call super, as that overrides default widget if it has choices
+        defaults = {'required': not self.blank, 'label': capfirst(self.verbose_name), 
+                    'help_text': self.help_text, 'choices':self.choices}
+        if self.has_default():
+            defaults['initial'] = self.get_default()
+        defaults.update(kwargs)
+        return MultiSelectFormField(**defaults)
+
+    def get_db_prep_value(self, value, connection, prepared):
+        if not value:
+            return ''
+        if isinstance(value, basestring):
+            return value
+        elif isinstance(value, list):
+            return ",".join(value) + ','
+
+    def to_python(self, value):
+        if isinstance(value, list):
+            return value
+        if not value:
+            return []
+        return value.strip(',').split(",")
+
+    def contribute_to_class(self, cls, name):
+        super(MultiSelectField, self).contribute_to_class(cls, name)
+        if self.choices:
+            func = lambda self, fieldname = name, choicedict = dict(self.choices):",".join([choicedict.get(value,value) for value in getattr(self,fieldname)])
+            setattr(cls, 'get_%s_display' % self.name, func)
+
+
+    def validate(self, value, model_instance):
+        if not self.editable:
+            # Skip validation for non-editable fields.
+            return
+
+        for item in value:
+            super(MultiSelectField, self).validate(item, model_instance)
+        return
+models.MultiSelectField = MultiSelectField

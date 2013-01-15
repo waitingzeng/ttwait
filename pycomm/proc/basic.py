@@ -140,8 +140,9 @@ class ProcBase(object):
     def create_worker( self, id ):
         raise NotImplementedError
 
-    def test_init(self, options):
-        pass
+
+    def run_test(self, options, args):
+        return self.worker(1)
 
     def add_options(self, parser):
         pass
@@ -182,9 +183,8 @@ class ProcBase(object):
         if options.debug:
             self.debug = True
         if options.test:
-            self.test_init(options)
             open_debug()
-            self.worker(1)
+            self.run_test(options, args)
             return
         if options.stop:
             self.killall()

@@ -9,9 +9,11 @@ from datetime import datetime
 from functools import partial
 
 
+
 _PATH_PREFIX = os.environ.get('LOGPATH', "/home/webuser/logs")
 _LOG_FILEFORMAT = os.environ.get('LOGFILEFORMAT', '%Y%m%d%H')
 import logging
+from logging import _levelNames
 from logging.handlers import RotatingFileHandler
 try:
     import codecs
@@ -56,7 +58,14 @@ logging.addLevelName(TRACE, 'TRACE')
 
 getLogger = logging.getLogger
 
-def open_log(name=None, log_level=logging.DEBUG, path=None, format=FORMAT, log_type=None, max_bytes=0, backup_count=0):
+def open_log(name=None, log_level=None, path=None, format=FORMAT, log_type=None, max_bytes=0, backup_count=0):
+    if not log_level:
+        log_level = logging.DEBUG
+
+    if isinstance(log_level, basestring):
+        log_level = _levelNames.get(log_level.upper(), logging.DEBUG)
+
+
     if log_type == 'rotating':
         log_handler = RotatingFileHandler
     else:
@@ -79,9 +88,6 @@ def open_log(name=None, log_level=logging.DEBUG, path=None, format=FORMAT, log_t
     handler.setFormatter(fmt)    
 
     log.addHandler(handler)
-    
-    if not log_level:
-        log_level = logging.DEBUG
     
     log.setLevel(log_level)
 
