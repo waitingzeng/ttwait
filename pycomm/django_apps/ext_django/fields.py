@@ -6,6 +6,7 @@ import time
 import os
 import random
 import re
+import hashlib
 
 
 from django.contrib.admin import util
@@ -20,6 +21,7 @@ from django.template.defaultfilters import slugify
 from django.db.models import DateTimeField, CharField, SlugField
 from django.utils.text import capfirst
 from django.conf import settings
+from django.db.models.query import QuerySet
 
 
 try:
@@ -171,6 +173,15 @@ models.UnixTimestampField = UnixTimestampField
 
 
 class ZeroReverseSingleRelatedObjectDescriptor(ReverseSingleRelatedObjectDescriptor):
+    def get_query_set(self, **db_hints):
+        rel_mgr = self.field.rel.to._default_manager
+        # If the related manager indicates that it should be used for
+        # related fields, respect that.
+        if getattr(rel_mgr, 'use_for_related_fields', False):
+            return rel_mgr
+        else:
+            return QuerySet(self.field.rel.to)
+
     def __get__(self, instance, instance_type=None):
         try:
             return ReverseSingleRelatedObjectDescriptor.__get__(self, instance, instance_type)
@@ -191,6 +202,22 @@ class ZeroForeignKey(models.ForeignKey):
     def contribute_to_class(self, cls, name):
         super(ZeroForeignKey, self).contribute_to_class(cls, name)
         setattr(cls, self.name, ZeroReverseSingleRelatedObjectDescriptor(self))
+
+    def validate(self, value, model_instance):
+        if self.rel.parent_link:
+            return
+        super(ForeignKey, self).validate(value, model_instance)
+        if value is None:
+            return
+
+        qs = self.rel.to._default_manager.filter(
+                **{self.rel.field_name: value}
+             )
+        qs = qs.complex_filter(self.rel.limit_choices_to)
+        if not qs.exists():
+            raise exceptions.ValidationError(self.error_messages['invalid'] % {
+                'model': self.rel.to._meta.verbose_name, 'pk': value})
+
 
 models.ZeroForeignKey = ZeroForeignKey
 
@@ -214,13 +241,88 @@ class CustomImageField(models.ImageField):
             if not value:
                 return ''
 
-            value = urlparse.urljoin(settings.MEDIA_URL, value)
+            value = urlparse.urljoin(settings.MEDIA_URL, unicode(value))
             return mark_safe('<a target="_blank" href="%(value)s"><img src="%(value)s" width="100px" /></a>' % locals())
-        func.__name__ = self.verbose_name
+        func.__name__ = name
+        func.short_description = self.verbose_name
+
+        def url_func(obj, fieldname=name):
+            value = getattr(obj,fieldname)
+            if not value:
+                return ''
+
+            value = urlparse.urljoin(settings.MEDIA_URL, unicode(value))
+            return value
+        url_func.__name__ = name
+        url_func.short_description = self.verbose_name
+
         setattr(cls, 'get_%s_display' % self.name, func)
+        setattr(cls, 'get_%s_url' % self.name, url_func)
 
 
 
+class AutoMD5SlugField(SlugField):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('blank', True)
+        
+        populate_from = kwargs.pop('populate_from', None)
+        if populate_from is None:
+            raise ValueError("missing 'populate_from' argument")
+        else:
+            self._populate_from = populate_from
+        
+        self.hash_key = kwargs.pop('hash_key', time.time)
+        super(AutoMD5SlugField, self).__init__(*args, **kwargs)
+    
+    def get_new_slug(self, model_instance, extra=''):
+        slug_field = model_instance._meta.get_field(self.attname)
+
+        if callable(self.hash_key):
+            hash_key = self.hash_key()
+        else:
+            hash_key = self.hash_key
+        slug = hashlib.md5('%s%s%s' % (hash_key, getattr(model_instance, self._populate_from), extra)).hexdigest()
+        slug_len = slug_field.max_length
+        if slug_len:
+            slug = slug[:slug_len]
+
+        return slug
+
+    def create_slug(self, model_instance, add):
+        # get fields to populate from and slug field to set
+        slug = getattr(model_instance, self.attname)
+        if slug:
+            # slugify the original field content and set next step to 2
+            return slug 
+
+        slug = self.get_new_slug(model_instance)
+        original_slug = slug
+
+        # exclude the current model instance from the queryset used in finding
+        # the next valid slug
+        queryset = model_instance.__class__._default_manager.all()
+        if model_instance.pk:
+            queryset = queryset.exclude(pk=model_instance.pk)
+
+        kwargs = {}
+        kwargs[self.attname] = slug
+
+        while queryset.filter(**kwargs).count() > 0:
+            slug = self.get_new_slug(model_instance, random.random())
+            kwargs[self.attname] = slug
+
+        return slug
+
+    def pre_save(self, model_instance, add):
+        value = unicode(self.create_slug(model_instance, add))
+        setattr(model_instance, self.attname, value)
+        return value
+
+    def get_internal_type(self):
+        return "SlugField"
+
+    
+models.AutoMD5SlugField = AutoMD5SlugField
 
 
 class AutoSlugField(SlugField):
@@ -511,3 +613,44 @@ class MultiSelectField(models.Field):
             super(MultiSelectField, self).validate(item, model_instance)
         return
 models.MultiSelectField = MultiSelectField
+
+from django.contrib.contenttypes import generic
+
+class GenericForeignKey(generic.GenericForeignKey):
+    def get_content_type(self, obj=None, id=None, using=None):
+        # Convenience function using get_model avoids a circular import when
+        # using this model
+        ContentType = generic.get_model("contenttypes", "contenttype")
+        if obj:
+            return ContentType.objects.get_for_model(obj)
+        elif id:
+            #return ContentType.objects.db_manager(using).get_for_id(id)
+            return ContentType.objects.get_for_id(id)
+        else:
+            # This should never happen. I love comments like this, don't you?
+            raise Exception("Impossible arguments to GFK.get_content_type!")
+
+    def __get__(self, instance, instance_type=None):
+        if instance is None:
+            return self
+
+        try:
+            return getattr(instance, self.cache_attr)
+        except AttributeError:
+            rel_obj = None
+
+            # Make sure to use ContentType.objects.get_for_id() to ensure that
+            # lookups are cached (see ticket #5570). This takes more code than
+            # the naive ``getattr(instance, self.ct_field)``, but has better
+            # performance when dealing with GFKs in loops and such.
+            f = self.model._meta.get_field(self.ct_field)
+            ct_id = getattr(instance, f.get_attname(), None)
+            if ct_id:
+                ct = self.get_content_type(id=ct_id)
+                try:
+                    rel_obj = ct.model_class()._base_manager.get(pk=getattr(instance, self.fk_field))
+                except ObjectDoesNotExist:
+                    pass
+            setattr(instance, self.cache_attr, rel_obj)
+            return rel_obj
+

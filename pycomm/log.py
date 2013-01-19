@@ -166,7 +166,7 @@ class ErrorFileHandler(logging.StreamHandler):
             else:
                 stream = codecs.open(self.get_cur_filename(), 'a', self.encoding)
             try:
-                os.popen('chmod 777 %s' % self.get_cur_filename())
+                os.popen('chmod 644 %s' % self.get_cur_filename())
             except:
                 pass
             return stream

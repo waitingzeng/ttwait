@@ -13,7 +13,7 @@ from pycomm.django_apps.ext_django import models
 
 def _get_permissions(opts):
     perms = []
-    for action in ('view', 'export'):
+    for action in ('view', 'export', 'verify'):
         perms.append((_get_permission_codename(action, opts),
             'Can %s %s' % (action, opts.verbose_name_raw)))
     return perms

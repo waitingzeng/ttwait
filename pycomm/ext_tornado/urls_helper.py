@@ -40,13 +40,24 @@ class UrlsHelper(object):
 
         if url_name == 'index':
             yield base_url
-        
+
+        if base_url == '/index':
+            yield '/' + url_name
+
+        if base_url == '/index' and url_name == 'index':
+            yield '/'
+            
         
 
     def get_handler_urls(self, handler, controller_path):
         
         urls = getattr(handler, 'urls', [])
         if urls:
+            abspath = osp.abspath(inspect.getsourcefile(handler)).lower()
+            abspath = abspath.replace('\\', '/')
+
+            if abspath.find(controller_path) == -1:
+                return
             for url in urls:
                 yield (url, handler)
             return
@@ -59,7 +70,7 @@ class UrlsHelper(object):
         if get_urls is None and post_urls is None:
             raise StopIteration
 
-        log.debug('handler %s get_urls %s  post_urls %s',  handler.__name__, get_urls, post_urls)
+        #log.debug('handler %s get_urls %s  post_urls %s',  handler.__name__, get_urls, post_urls)
         sub_urls = get_urls or []
         for url in post_urls or []:
             if url not in sub_urls:

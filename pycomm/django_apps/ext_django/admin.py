@@ -15,6 +15,10 @@ from pycomm.log import log, PrefixLog
 from django.contrib.admin.views.main import ALL_VAR
 from actions import csv_export_selected
 from django.contrib.admin import widgets
+from django.core.exceptions import PermissionDenied
+from pprint import pprint
+from django.core.urlresolvers import reverse
+from django.db.models.fields.related import ForeignRelatedObjectsDescriptor, ReverseManyRelatedObjectsDescriptor
 
 
 class ModelAdmin(admin.ModelAdmin):
@@ -29,11 +33,18 @@ class ModelAdmin(admin.ModelAdmin):
         admin.ModelAdmin.__init__(self, *args, **kwargs)
         info = self.model._meta.app_label, self.model._meta.module_name
         self.log = PrefixLog('admin:%s_%s' % info)
+        
 
     def has_view_permission(self, request, obj=None):
         opts = self.opts
         view_permission = 'view_%s' %self.model._meta.module_name
         return request.user.has_perm(opts.app_label + '.' + view_permission)
+
+    def has_verify_permission(self, request, obj=None):
+        opts = self.opts
+        verify_permission = 'verify_%s' %self.model._meta.module_name
+        return request.user.has_perm(opts.app_label + '.' + verify_permission)
+
 
     def has_export_permission(self, request, obj=None):
         opts = self.opts
@@ -47,17 +58,24 @@ class ModelAdmin(admin.ModelAdmin):
 
 
     def has_change_permission(self, request, obj=None):
-        if hasattr(self,'has_change'):
-          if self.has_change:
-              return True
+        ret = admin.ModelAdmin.has_change_permission(self, request, obj)
+        if ret:
+            return ret
+        if self.has_view_permission(request, obj):
+            if request.method == 'POST':
+                return False
+            return True
 
+
+    def has_raw_change_permission(self, request, obj=None):
         return admin.ModelAdmin.has_change_permission(self, request, obj)
-
+        
     def get_model_perms(self, request):
         value = admin.ModelAdmin.get_model_perms(self, request)
         value['view'] = self.has_view_permission(request)
         value['export'] = self.has_export_permission(request)
         value['stat'] = self.has_stat_permission(request)
+        value['verify'] = self.has_verify_permission(request)
         return value        
 
     def log_change(self, request, object, message):
@@ -220,8 +238,6 @@ class ModelAdmin(admin.ModelAdmin):
 
 
     def changelist_view(self, request, extra_context=None):
-        if self.has_view_permission(request, None):
-            self.has_change = True
         
         if not extra_context:
             extra_context = {}
@@ -234,6 +250,7 @@ class ModelAdmin(admin.ModelAdmin):
         try:
             response.context_data['has_export_permission'] = self.has_export_permission(request)
             response.context_data['has_stat_permission'] = self.has_stat_permission(request)
+            response.context_data['has_verify_permission'] = self.has_verify_permission(request)
             path = request.get_full_path().split('?')
             if len(path) == 2:
                 params = '?' + path[1]
@@ -260,8 +277,14 @@ class ModelAdmin(admin.ModelAdmin):
         pass
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
+        if not self.has_raw_change_permission(request):
+            raise PermissionDenied()
+
         if not extra_context:
             extra_context = {}
+
+        opts = self.model._meta
+        extra_context['module_name'] = opts.module_name
 
         ret = self.before_change_view(request, object_id, form_url, extra_context)
         if isinstance(ret, HttpResponse):

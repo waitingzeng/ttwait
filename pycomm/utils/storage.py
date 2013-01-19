@@ -66,7 +66,7 @@ class SortedDict(dict):
 
     def __deepcopy__(self, memo):
         return self.__class__([(key, copy.deepcopy(value, memo))
-                               for key, value in six.iteritems(self)])
+                               for key, value in self.iteritems()])
 
     def __copy__(self):
         # The Python's default copy implementation will alter the state
@@ -169,7 +169,7 @@ class SortedDict(dict):
         Replaces the normal dict.__repr__ with a version that returns the keys
         in their sorted order.
         """
-        return '{%s}' % ', '.join(['%r: %r' % (k, v) for k, v in six.iteritems(self)])
+        return '{%s}' % ', '.join(['%r: %r' % (k, v) for k, v in self.iteritems()])
 
     def clear(self):
         super(SortedDict, self).clear()
@@ -180,15 +180,20 @@ class ConstType(type):
         attrs_value = {}
         attrs_label = {}
         new_attrs = {}
+        labels_to_values = {}
         
         for k, v in attrs.items():
+            if k.startswith('__'):
+                continue
             if isinstance(v, tuple):
                 attrs_value[k] = v[0]
                 attrs_label[k] = v[1]
                 new_attrs[v[0]] = v[1]
+                labels_to_values[v[1]] = v[0]
             elif isinstance(v, dict) and 'label' in v:
                 attrs_value[k] = v['value']
                 attrs_label[k] = v['label']
+                labels_to_values[v['label']] = v['value']
                 new_attrs[v['value']] = v['label']
             else:
                 attrs_value[k] = v
@@ -200,6 +205,7 @@ class ConstType(type):
         obj = type.__new__(cls, name, bases, attrs_value)
         obj.values = attrs_value
         obj.labels = attrs_label
+        obj.labels_to_values = labels_to_values
         obj.attrs = new_attrs
         return obj
 

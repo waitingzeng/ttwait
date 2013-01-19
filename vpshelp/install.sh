@@ -99,7 +99,9 @@ net-snmp-config --create-snmpv3-user -ro -A TTwait846266 -a MD5 jiankongbao
 /etc/init.d/snmpd start
 snmpwalk -v 3 -u jiankongbao -a MD5 -A "TTwait846266" -l authNoPriv 127.0.0.1 sysDescr
 
+ln -s /root/data/ttwait/vpshelp/nginx.sh /etc/init.d/nginx
 ln -s /root/data/ttwait/vpshelp/supervisord.sh /etc/init.d/supervisord
+chmod +x /root/data/ttwait/vpshelp/nginx.sh /root/data/ttwait/vpshelp/supervisord.sh
 chkconfig --add nginx
 chkconfig --add supervisord
 chkconfig nginx on
