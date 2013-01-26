@@ -12,6 +12,7 @@ from urls_helper import urls_helper
 import ujson as json
 from pycomm.utils.decorator import decorator
 from tornado import stack_context
+import base64
 
 
 
@@ -177,4 +178,6 @@ class BaseHandler(RequestHandler):
 
             return self.send_error(500, exc_info=sys.exc_info())
         return RequestHandler._handle_request_exception(self, e)
+
+
 

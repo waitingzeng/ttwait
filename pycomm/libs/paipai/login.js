@@ -67,6 +67,7 @@ page.open(url, function(status){
     }
     else{
         log.info('{0} not process', url);
+        phantom.exit()
     }
 
 });

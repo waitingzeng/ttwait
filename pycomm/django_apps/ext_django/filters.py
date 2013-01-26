@@ -41,6 +41,7 @@ class UnixTimeIntervalFilter(admin.filters.FieldListFilter):
                 }, []),
                 'display': k,
             }
+
        
 class MultiSelectFieldListFilter(admin.filters.FieldListFilter):
     def __init__(self, field, request, params, model, model_admin, field_path):

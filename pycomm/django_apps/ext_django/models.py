@@ -98,7 +98,6 @@ class BaseModel(six.with_metaclass(NewBase), models.Model):
         return name, v, short_desc
 
     def _get_fields_data(self, fieldset):
-
         res = {}
         comments = {}
         for fields in fieldset:

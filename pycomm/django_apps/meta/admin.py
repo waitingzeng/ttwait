@@ -44,5 +44,6 @@ class PermissionAdmin(admin.ModelAdmin):
     list_display = ('name', 'content_type', 'codename')
     list_filter = ('content_type',)
     search_fields = ('name', 'codename')
+    raw_id_fields = ['content_type']
 
 admin.site.register(Permission, PermissionAdmin)

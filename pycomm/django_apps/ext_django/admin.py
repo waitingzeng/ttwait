@@ -79,6 +79,8 @@ class ModelAdmin(admin.ModelAdmin):
         return value        
 
     def log_change(self, request, object, message):
+        if not object:
+            return
         admin.ModelAdmin.log_change(self, request, object, message)
 
         self.log.trace('user %s change %s %s', request.user, object, message)
@@ -238,7 +240,8 @@ class ModelAdmin(admin.ModelAdmin):
 
 
     def changelist_view(self, request, extra_context=None):
-        
+        self.list_editable = self.get_list_editable(request) or self.__class__.list_editable
+
         if not extra_context:
             extra_context = {}
 
@@ -320,6 +323,9 @@ class ModelAdmin(admin.ModelAdmin):
                         can_add_related=can_add_related)
 
         return formfield
+
+    def get_list_editable(self, request):
+        return self.list_editable
 
 site = admin.site
 TabularInline = admin.TabularInline

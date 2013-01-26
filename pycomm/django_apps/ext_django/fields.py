@@ -259,6 +259,12 @@ class CustomImageField(models.ImageField):
         setattr(cls, 'get_%s_display' % self.name, func)
         setattr(cls, 'get_%s_url' % self.name, url_func)
 
+    def update_dimension_fields(self, *args, **kwargs):
+        try:
+            models.ImageField.update_dimension_fields(self, *args, **kwargs)
+        except:
+            pass
+
 
 
 class AutoMD5SlugField(SlugField):
@@ -584,7 +590,7 @@ class MultiSelectField(models.Field):
 
     def get_db_prep_value(self, value, connection, prepared):
         if not value:
-            return ''
+            return None
         if isinstance(value, basestring):
             return value
         elif isinstance(value, list):
@@ -654,3 +660,4 @@ class GenericForeignKey(generic.GenericForeignKey):
             setattr(instance, self.cache_attr, rel_obj)
             return rel_obj
 
+generic.GenericForeignKey = GenericForeignKey

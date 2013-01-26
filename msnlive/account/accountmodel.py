@@ -87,7 +87,7 @@ class AccountModel(object):
         if limit > 0:
             sql = "update accounts set can_add=1 where can_add=0 and state>=1 order by id limit %d" % limit
             self.db.execute(sql)
-        sql = "select count(id) as num from accounts where can_add=1 and  state>= 1"
+        sql = "select count(id) as num from accounts where can_add=1 and  state>=1"
         can_add = int(self.db.get(sql)['num'])
         sql = "select count(id) as num from accounts where can_add=0 and state=1"
         new_active = int(self.db.get(sql)['num'])
