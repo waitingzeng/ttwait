@@ -1,0 +1,64 @@
+{% extends "admin/base_site.html" %}
+
+<!-- LOADING -->
+{% load i18n %}
+
+<!-- BREADCRUMBS -->
+{% block breadcrumbs %}
+    <ul class="grp-horizontal-list">
+        <li><a href="../../">{% trans "Home" %}</a></li>
+        <li><a href="../">{% trans app_label|capfirst|escape %}</a></li>
+        <li><a href="./">{{ opts.verbose_name_plural|capfirst }}</a></li>
+        <li>导出所选内容</li>
+    </ul>
+{% endblock %}
+
+<!-- CONTENT -->
+{% block content %}
+    <script type="text/javascript" charset="utf-8">
+        (function($) {
+            $(document).ready(function() {
+                $("input").attr("autocomplete", "off");
+                $('#select_all').click(function(){
+                    if($(this).attr('checked')){
+                         $("._fields").attr('checked', 'checked');
+                    }else{
+                        $("._fields").removeAttr('checked');
+                    }   
+                });
+            });
+        })(django.jQuery);
+    </script>
+    <div class="g-d-c csv-export-confirmation">
+        <form action="" method="post">{% csrf_token %}
+            <fieldset class="grp-module">
+                <h2>导出以下字段</h2>
+                <div class="grp-row">
+                    <ul class="checkboxlist">
+                        <li><label for="select_all"><input type="checkbox" name="select_all" value="" id="select_all" checked="checked" />全选</label></li>
+                    </ul>
+                </div>
+                <div class="grp-row">
+                    <ul class="checkboxlist">
+                        {% for item in fields %}
+                            <li>
+                                <label for="id_{{ item.0 }}"><input type="checkbox" class="_fields" name="_fields" value="{{ item.0 }}" id="id_{{ item.0 }}" checked="checked" /> {{ item.1 }}</label>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </fieldset>
+            <div class="grp-module grp-footer">
+                {% for obj in queryset %}
+                    <input type="hidden" name="{{ action_checkbox_name }}" value="{{ obj.pk }}" />
+                {% endfor %}
+                <input type="hidden" name="action" value="csv_export_selected" />
+                <input type="hidden" name="post" value="yes" />
+                <ul class="grp-horizontal-list-right grp-submit-row">
+                    <li class="grp-float-left grp-submit-button-container"><a href="../" class="grp-cancel-link">返回</a></li>
+                    <li class="grp-submit-button-container"><input type="submit" value="导出" class="grp-default" /></li>
+                </ul>
+            </div>
+        </form>
+    </div>
+{% endblock %}
