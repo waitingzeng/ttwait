@@ -22,6 +22,8 @@ class Command(AppCommand):
         outputs.append("    list_filter = %s" % admin.list_filter)
         outputs.append("    list_editable = %s" % admin.list_editable)
         outputs.append("    date_hierarchy = %s" % admin.date_hierarchy)
+        outputs.append("    raw_id_fields = %s" % admin.raw_id_fields)
+        outputs.append("    autocomplete_lookup_fields = %s" % admin.autocomplete_lookup_fields)
 
         outputs.append("")
         outputs.append("admin.site.register(models.%s, %s)" % (admin.__name__[:-5], admin.__name__))

@@ -18,6 +18,11 @@ fs = require('fs');
 var page = get_page();
 var url = 'http://ui.ptlogin2.paipai.com/cgi-bin/login?appid=17000101&style=0&target=self&no_verifyimg=1&hide_title_bar=1&f_url=loginerroralert&bgcolor=f2faff&link_target=blank&s_url=http://member.paipai.com/cgi-bin/ptlogin%3Floginfrom%3D18';
 
+var t = setInterval(function(){
+    phantom.exit();
+}, 30000);
+
+
 page.open(url, function(status){
     
     if (status != 'success') {

@@ -3,7 +3,7 @@ import pygraphviz
 from optparse import make_option
 from django.core.management.base import BaseCommand
 from django.db.models import get_apps, get_app, get_models, get_model
-from pycomm.django_apps.django_fsm.db.fields import FSMField
+from pycomm.django_apps.django_fsm.fields import FSMField
 
 def all_fsm_fields(model):
     return [field for field in model._meta.fields \

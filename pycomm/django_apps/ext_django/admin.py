@@ -20,7 +20,6 @@ from pprint import pprint
 from django.core.urlresolvers import reverse
 from django.db.models.fields.related import ForeignRelatedObjectsDescriptor, ReverseManyRelatedObjectsDescriptor
 
-
 class ModelAdmin(admin.ModelAdmin):
     list_export_fields = None
     stat_list_filter = None
@@ -330,6 +329,7 @@ class ModelAdmin(admin.ModelAdmin):
 site = admin.site
 TabularInline = admin.TabularInline
 StackedInline = admin.StackedInline
+
 VERTICAL = admin.VERTICAL
 
 def create_admin_models(model):
@@ -346,8 +346,20 @@ def create_admin_models(model):
         [x.name for x in fields if isinstance(x, (models.CharField, models.TextField))]
 
     AutoModelAdmin.list_filter = getattr(model, 'list_filter', []) or \
-        [x.name for x in fields if x.choices or isinstance(x, models.DateTimeField)]
+        [x.name for x in fields if x.choices or isinstance(x, models.DateTimeField) or isinstance(x, models.BooleanField) ]
     AutoModelAdmin.list_editable = [x for x in  AutoModelAdmin.list_filter if x in AutoModelAdmin.list_display]
+
+    fks = [x.name for x in fields if isinstance(x, models.ForeignKey)]
+    m2m = []
+    for k, v in model.__dict__.items():
+        if isinstance(v, ReverseManyRelatedObjectsDescriptor):
+            m2m.append(k)
+
+    AutoModelAdmin.raw_id_fields = fks + m2m
+    AutoModelAdmin.autocomplete_lookup_fields = {
+        'fk' : fks,
+        'm2m' : m2m,
+    }
 
     #datetime_fields = [x.name for x in fields if isinstance(x, models.DateTimeField)]
     #if datetime_fields:

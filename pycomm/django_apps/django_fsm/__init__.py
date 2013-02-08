@@ -2,9 +2,12 @@
 """
 State tracking functionality for django models
 """
-from django.db.models import get_models, signals
+from django.db.models import get_models, signals as djnago_signals
 from django.contrib.auth.management import _get_permission_codename
-from pycomm.django_apps.django_fsm.db.fields import FSMField
+from django.contrib.contenttypes.models import ContentType
+from .fields import FSMField
+from django.contrib.auth import models as auth_app
+
 
 def all_fsm_fields(opts):
     return [field for field in opts.fields \
@@ -21,12 +24,17 @@ def _get_permissions(opts):
             perms.append((_get_permission_codename(action, opts),
                 'Can %s %s' % (action, opts.verbose_name_raw)))
 
+        if field.choices:
+            for k, v in field.choices:
+                code = _get_permission_codename('change_%s_%s' % (k, field.name), opts )
+                verbose_name = 'Can change %s %s %s' % (k, field.verbose_name, opts.verbose_name_raw)
+                perms.append((code, verbose_name))
+
     return perms
 
 
 def create_permissions(app, created_models, verbosity, **kwargs):
-    from django.contrib.contenttypes.models import ContentType
-
+    
     app_models = get_models(app)
 
     # This will hold the permissions we're looking for as
@@ -60,7 +68,4 @@ def create_permissions(app, created_models, verbosity, **kwargs):
         for obj in objs:
             print("Adding permission '%s'" % obj)
 
-
-
-signals.post_syncdb.connect(create_permissions,
-    dispatch_uid="alterdb.create_permissions")
+djnago_signals.post_syncdb.connect(create_permissions)

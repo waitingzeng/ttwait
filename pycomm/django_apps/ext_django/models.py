@@ -62,8 +62,10 @@ class BaseModel(six.with_metaclass(NewBase), models.Model):
         return cls.simple_info_fields
 
     def _get_field_data(self, name):
+        extra = 'simple'
         if name.find('.') != -1:
             name, extra = name.split('.')
+
             is_simple_info = extra != 'full'
         else:
             is_simple_info = getattr(self._state, 'is_simple_info', True)
@@ -80,8 +82,11 @@ class BaseModel(six.with_metaclass(NewBase), models.Model):
         if not v:
             return name, None, short_desc
         if isinstance(field, models.ForeignKey):
-            v._state.is_simple_info = is_simple_info
-            v = v.json_data()
+            if extra not in ['simple', 'full']:
+                v = getattr(v, extra, None)
+            else:
+                v._state.is_simple_info = is_simple_info
+                v = v.json_data()
         elif repr(v).find('RelatedManager') != -1:
             fks = []
             for x in v.all():
@@ -95,6 +100,8 @@ class BaseModel(six.with_metaclass(NewBase), models.Model):
                 short_desc = v.short_description
             if callable(v):
                 v = v()
+        if name == 'module':
+            print short_desc
         return name, v, short_desc
 
     def _get_fields_data(self, fieldset):

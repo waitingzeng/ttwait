@@ -22,6 +22,7 @@ from django.db.models import DateTimeField, CharField, SlugField
 from django.utils.text import capfirst
 from django.conf import settings
 from django.db.models.query import QuerySet
+from django.db.models.fields import NOT_PROVIDED
 
 
 try:
@@ -226,6 +227,7 @@ from pycomm.utils.cache import SimpleFileBasedCache
 
 
 class CustomImageField(models.ImageField):
+
     def get_filename(self, filename):
         key = '%s%s' % (random.random(), filename)
         return SimpleFileBasedCache.name_to_key(key, '.jpg')
@@ -238,8 +240,10 @@ class CustomImageField(models.ImageField):
         super(CustomImageField, self).contribute_to_class(cls, name)
         def func(obj, fieldname=name):
             value = getattr(obj,fieldname)
-            if not value:
+            if not value and not self.default or self.default == NOT_PROVIDED:
                 return ''
+
+            value = self.default
 
             value = urlparse.urljoin(settings.MEDIA_URL, unicode(value))
             return mark_safe('<a target="_blank" href="%(value)s"><img src="%(value)s" width="100px" /></a>' % locals())
@@ -249,7 +253,7 @@ class CustomImageField(models.ImageField):
         def url_func(obj, fieldname=name):
             value = getattr(obj,fieldname)
             if not value:
-                return ''
+                return self.default != NOT_PROVIDED and self.default or ''
 
             value = urlparse.urljoin(settings.MEDIA_URL, unicode(value))
             return value
@@ -607,7 +611,11 @@ class MultiSelectField(models.Field):
         super(MultiSelectField, self).contribute_to_class(cls, name)
         if self.choices:
             func = lambda self, fieldname = name, choicedict = dict(self.choices):",".join([choicedict.get(value,value) for value in getattr(self,fieldname)])
+            func.__name__ = self.verbose_name
             setattr(cls, 'get_%s_display' % self.name, func)
+            func = lambda self, fieldname = name, choicedict = dict(self.choices):[choicedict.get(value,value) for value in getattr(self,fieldname)]
+            func.__name__ = self.name
+            setattr(cls, 'get_%s_values' % self.name, func)
 
 
     def validate(self, value, model_instance):

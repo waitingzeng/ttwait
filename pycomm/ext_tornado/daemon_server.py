@@ -33,6 +33,7 @@ class Application(ProcPool):
 def run_server(app_server):
     parser = OptionParser(conflict_handler='resolve')
     parser.add_option('-p', '--port', dest='port', action="store", help="the listen port", type='int')
+    parser.add_option('--address', dest='address', action="store", help="the listen address", type='string')
     parser.add_option('--worker_num', dest='worker_num', action="store", help="the thread num", type='int')
     parser.add_option('--logname', dest='logname', action="store", help="the log name", type='string')
     parser.add_option('--loglevel', dest='loglevel', action="store", help="the log level", type='int')
@@ -43,6 +44,9 @@ def run_server(app_server):
     if not options.logname:
         options.logname = 'web'
 
+    if not options.address:
+        options.address = '127.0.0.1'
+
     if not options.loglevel:
         options.loglevel = 10
 
@@ -50,7 +54,7 @@ def run_server(app_server):
     open_debug()
 
     log.trace('start server port %s', options.port)
-    app_server.bind('%s' % options.port)
+    app_server.bind('%s' % options.port, options.address)
     app_server.start(num_processes=options.worker_num)
     tornado.ioloop.IOLoop.instance().start()
 
