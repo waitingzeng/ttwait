@@ -163,6 +163,13 @@ class UnixTimestampField(models.DateTimeField):
             return value
         func.__name__ = self.verbose_name
         setattr(cls, 'get_%s_display' % self.name, func)
+        def func(obj, fieldname=name):
+            value = getattr(obj,fieldname)
+            if isinstance(value, datetime.datetime):
+                return time.mktime(value.timetuple())
+            return value
+        func.__name__ = name
+        setattr(cls, 'get_%s_value' % self.name, func)
 
 
 #    def value_from_object(self, obj):

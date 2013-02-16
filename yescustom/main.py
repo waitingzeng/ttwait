@@ -169,7 +169,7 @@ class CodeHandler(ProxyHandler):
 
 class StaticHandler(ProxyHandler):
     cache = True
-    response_replaces = [(target_doamin, my_domain), ('Custom Drop', 'Custom DIY Drop'), ('Customdropshipping', ' Customdiydropshipping')]
+    response_replaces = [(target_doamin, my_domain), ('Custom Drop', 'Custom DIY Drop'), ('Customdropshipping', ' Customdiydropshipping'), ('yescustom', 'yesdiycustom')]
 
     def process_body(self, response, body):
         return body
@@ -359,6 +359,15 @@ class CartPayment(HtmlHandler):
         return HtmlHandler.get(self)
 
 
+class AboutUs(HtmlHandler):
+    response_replaces = HtmlHandler.response_replaces + [
+        ('/data/article/201112/2011121317134384677.gif', '/data/logo/logo-363-105.jpg'), 
+        ('/data/article/201112/2011121317163360585.gif', '/data/logo/logo-80-58.jpg'), 
+        ('/data/article/201112/2011121317161537891.gif', '/data/logo/logo-80-58.jpg'),
+        ('/data/article/201112/2011121317165065072.gif', '/data/logo/logo-80-58.jpg'),
+        ]
+
+
 handlers = [
     (r'.*\.(jpg|png|bmp|gif|jpeg|ico)', ImageHandler),
     (r'/edit-(i|img)/.*', ImageHandler),
@@ -375,6 +384,7 @@ handlers = [
     (r'/myaccount-profile/.*', MyAccountProfile),
     (r'/my.*', MyHandler),
     (r'/cart-payment/cart/(.+)/.*', CartPayment),
+    (r'/article-about/n/about_us', AboutUs),
     (r'.*', HtmlHandler),
 ]
 
