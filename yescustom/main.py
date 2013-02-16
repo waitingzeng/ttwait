@@ -169,7 +169,7 @@ class CodeHandler(ProxyHandler):
 
 class StaticHandler(ProxyHandler):
     cache = True
-    response_replaces = [(target_doamin, my_domain)]
+    response_replaces = [(target_doamin, my_domain), ('Custom Drop', 'Custom DIY Drop'), ('Customdropshipping', ' Customdiydropshipping')]
 
     def process_body(self, response, body):
         return body
@@ -190,15 +190,38 @@ class StaticHandler(ProxyHandler):
 
 class HtmlHandler(StaticHandler):
     cache = False
-    remove_elms = ['.headContact', '.footNewsletter']
+    remove_elms = ['.headContact', '.footNewsletter', ('.footNav li', 'eq(2)')]
 
     def change_body_extra(self, response, body):
         pass
 
+    def get_remove_elms(self):
+        elms = []
+        clss = [self.__class__]
+        while clss:
+            cls = clss.pop(0)
+            if not issubclass(cls, StaticHandler):
+                break
+            if hasattr(cls, 'remove_elms'):
+                elms.extend(cls.remove_elms)
+            
+            clss.extend(cls.__bases__)
+        return set(elms)
+
+
     def process_body(self, response, body):
         pqbody = pq(body)
-        for elm in self.remove_elms:
-            pqbody.find(elm).remove()
+
+        for elm in self.get_remove_elms():
+
+            if isinstance(elm, (tuple, list)):
+                obj = pqbody(elm[0])
+                for ex in elm[1:]:
+                    obj = eval('obj.%s' % ex, {'obj' : obj})
+
+            else:
+                obj = pqbody.find(elm)
+            obj.remove()
 
         self.change_body_extra(response, pqbody)
 
@@ -292,7 +315,7 @@ class SignSigoutAction(ProxyHandler):
 
 
 class MyHandler(HtmlHandler):
-    remove_elms = HtmlHandler.remove_elms + ['.prompt1']
+    remove_elms = ['.prompt1']
 
 
 class MyAccountSetPassword(HtmlHandler):
@@ -325,11 +348,8 @@ class MyAccountProfile(HtmlHandler):
 
 
 class Cart(HtmlHandler):
-    
-    def change_body_extra(self, response, body):
-        body.find('.table1').eq(1).remove()
-        body.find('.line2').eq(1).remove()
-        return body
+    remove_elms = [('.table1', 'eq(1)'), ('.line2', 'eq(1)')]
+
 
 class CartPayment(HtmlHandler):
     def get(self, order_sn, *args, **kwargs):
