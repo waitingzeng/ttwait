@@ -24,6 +24,7 @@ from pycomm.log import log, open_log, open_debug
 from pyquery import PyQuery as pq
 from custom.order.models import UserProfile, UserOrder
 from pycomm.utils.cache import SimpleFileBasedCache
+from pycomm.utils import text
 
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -169,7 +170,9 @@ class CodeHandler(ProxyHandler):
 
 class StaticHandler(ProxyHandler):
     cache = True
-    response_replaces = [(target_doamin, my_domain), ('Custom Drop', 'Custom DIY Drop'), ('Customdropshipping', ' Customdiydropshipping'), ('yescustom', 'yesdiycustom')]
+    response_replaces = [(target_doamin, my_domain),
+         ('Custom Drop', 'Custom DIY Drop'), ('Customdropshipping', ' Customdiydropshipping'), ('yescustom', 'yesdiycustom')
+         ]
 
     def process_body(self, response, body):
         return body
@@ -190,7 +193,8 @@ class StaticHandler(ProxyHandler):
 
 class HtmlHandler(StaticHandler):
     cache = False
-    remove_elms = ['.headContact', '.footNewsletter', ('.footNav li', 'eq(2)')]
+    remove_elms = []#['.headContact', '.footNewsletter', ('.footNav li', 'eq(2)')]
+    remove_ins = [('<div class="headContact cf">', '</div>'), ('<div class="footNewsletter fr">', '<div class="line3"></div>'), ('<dt>FOLLOW  Customdiydropshipping</dt>', '</dd>')]
 
     def change_body_extra(self, response, body):
         pass
@@ -210,23 +214,31 @@ class HtmlHandler(StaticHandler):
 
 
     def process_body(self, response, body):
-        pqbody = pq(body)
 
-        for elm in self.get_remove_elms():
+        for begin, end in self.remove_ins:
+            content = text.get_in(body, begin, end)
+            body = body.replace('%s%s%s' % (begin, content, end), '')
 
-            if isinstance(elm, (tuple, list)):
-                obj = pqbody(elm[0])
-                for ex in elm[1:]:
-                    obj = eval('obj.%s' % ex, {'obj' : obj})
+        if self.remove_elms:
+            
+            pqbody = pq(body)
 
-            else:
-                obj = pqbody.find(elm)
-            obj.remove()
+            for elm in self.get_remove_elms():
 
-        self.change_body_extra(response, pqbody)
+                if isinstance(elm, (tuple, list)):
+                    obj = pqbody(elm[0])
+                    for ex in elm[1:]:
+                        obj = eval('obj.%s' % ex, {'obj' : obj})
 
-        body = pqbody.outerHtml()
+                else:
+                    obj = pqbody.find(elm)
 
+                obj.remove()
+
+            self.change_body_extra(response, pqbody)
+
+            body = pqbody.outerHtml()
+        
         return body
 
 
