@@ -403,7 +403,7 @@ handlers = [
 
 class ProxyApplication(tornado.web.Application):
     def __init__(self, io_loop=None, **kwargs):
-        self.application.proxypass = 'http://www.customdropshipping.com'
+        self.proxypass = 'http://www.customdropshipping.com'
         kwargs.update(handlers=handlers)
 
         super(ProxyApplication, self).__init__(**kwargs)
