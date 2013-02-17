@@ -1,5 +1,5 @@
 # Django settings for custom project.
-
+import os
 DEBUG = False
 if os.getenv('CUSTOMDEV'):
     DEBUG = True
