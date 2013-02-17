@@ -403,6 +403,7 @@ handlers = [
 
 class ProxyApplication(tornado.web.Application):
     def __init__(self, io_loop=None, **kwargs):
+        self.application.proxypass = 'http://www.customdropshipping.com'
         kwargs.update(handlers=handlers)
 
         super(ProxyApplication, self).__init__(**kwargs)
@@ -436,7 +437,7 @@ def run_proxy(**kwargs):
     open_log(options.logname, options.loglevel)
     open_debug()
     log.trace("start server on %s", options.port)
-    app = ProxyApplication(debug = options.debug, cookie_secret='aaaa')
+    app = ProxyApplication(debug = options.debug, cookie_secret='Q8hZd669bNYG85b9')
     app.start(options.port)
 
 

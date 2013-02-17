@@ -1,6 +1,8 @@
 # Django settings for custom project.
 
-DEBUG = True
+DEBUG = False
+if os.getenv('CUSTOMDEV'):
+    DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -15,7 +17,7 @@ DATABASES = {
         'NAME': 'yescustom',                      # Or path to database file if using sqlite3.
         # The following settings are not used with sqlite3:
         'USER': 'root',
-        'PASSWORD': '846266',
+        'PASSWORD': DEBUG and '846266' or 'TTwait846266',
         'HOST': '',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
         'PORT': '',                      # Set to empty string for default.
     }
