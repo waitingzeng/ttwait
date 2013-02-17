@@ -407,7 +407,6 @@ class ProxyApplication(tornado.web.Application):
 
         super(ProxyApplication, self).__init__(**kwargs)
         self.io_loop = io_loop or tornado.ioloop.IOLoop.instance()
-        self.proxypass = 'http://www.customdropshipping.com'
 
     def start(self, port, address=''):
         self.listen(port, address=address)
@@ -436,7 +435,7 @@ def run_proxy(**kwargs):
 
     open_log(options.logname, options.loglevel)
     open_debug()
-    log.trace("start server on %s proxypass %s", options.port, options.proxypass)
+    log.trace("start server on %s", options.port)
     app = ProxyApplication(debug = options.debug, cookie_secret='aaaa')
     app.start(options.port)
 
