@@ -31,9 +31,9 @@ tar xjvf phantomjs-1.6.1-linux-i686-dynamic.tar.bz2
 mv phantomjs-1.6.1-linux-i686-dynamic /usr/local/phantomjs
 
 cd /root/src
-wget http://www.python.org/ftp/python/2.6/Python-2.6.tgz
-tar xzvf Python-2.6.tgz
-cd Python-2.6
+wget http://www.python.org/ftp/python/2.6.7/Python-2.6.7.tar.bz2 
+tar xjvf Python-2.6.7.tar.bz2 
+cd Python-2.6.7
 ./configure
 cd Modules
 
