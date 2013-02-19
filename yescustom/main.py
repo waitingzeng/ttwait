@@ -194,7 +194,8 @@ class StaticHandler(ProxyHandler):
 class HtmlHandler(StaticHandler):
     cache = False
     remove_elms = []#['.headContact', '.footNewsletter', ('.footNav li', 'eq(2)')]
-    remove_ins = [('<div class="headContact cf">', '</div>'), ('<div class="footNewsletter fr">', '<div class="line3"></div>'), ('<dt>FOLLOW  Customdiydropshipping</dt>', '</dd>')]
+    remove_ins = [('<div class="headContact cf">', '</div>', """<div class="headContact cf"><span style="cursor:pointer; " id="365webcall_IMME_Icon_2d955ad6" ></span>
+<script type='text/javascript' src='http://www3.365webcall.com/IMMe1.aspx?settings=mw7m6XNNNN6wX6Pz3AN6760Xz3ANmN0bIz3Am6mmbI&IMME_Icon=365webcall_IMME_Icon_2d955ad6&LL=1'></script></div>"""), ('<div class="footNewsletter fr">', '<div class="line3"></div>', ''), ('<dt>FOLLOW  Customdiydropshipping</dt>', '</dd>', '')]
 
     def change_body_extra(self, response, body):
         pass
@@ -215,9 +216,9 @@ class HtmlHandler(StaticHandler):
 
     def process_body(self, response, body):
 
-        for begin, end in self.remove_ins:
+        for begin, end, replace in self.remove_ins:
             content = text.get_in(body, begin, end)
-            body = body.replace('%s%s%s' % (begin, content, end), '')
+            body = body.replace('%s%s%s' % (begin, content, end), replace)
 
         if self.remove_elms:
             
