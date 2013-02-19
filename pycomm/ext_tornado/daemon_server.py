@@ -17,7 +17,7 @@ from pprint import pprint, pformat
 from pycomm.log import log, open_log, open_debug
 from tornado.options import define, parse_command_line, options
 
-define("logname", type=str, default='',
+define("logname", type=str, default='<webserver></webserver>',
        help="the log name")
 define("port", type=int, default=9000,
        help="the server port")
@@ -38,7 +38,7 @@ def parse_options():
 
 def run_server(app_server):
     app_server.listen(options.port, options.address)
-    log.trace('start debug server %s', options.port)
+    log.trace('start debug server %s:%s', options.address, options.port)
     tornado.ioloop.IOLoop.instance().start()
 
 
@@ -47,6 +47,8 @@ def run_server(app_server):
 def run_django_server():
     from pycomm.log import WSGILogApplication
     import django.core.handlers.wsgi
+    import tornado.wsgi
+    import tornado.httpserver
     handler = django.core.handlers.wsgi.WSGIHandler()
     log_handler = WSGILogApplication(handler)
 

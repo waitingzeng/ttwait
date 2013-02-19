@@ -417,29 +417,11 @@ class ProxyApplication(tornado.web.Application):
 import base64
 import uuid
 
+from pycomm.ext_tornado.daemon_server import run_server, parse_options
 
-
-def run_proxy(**kwargs):
-    parser = OptionParser(conflict_handler='resolve')
-    parser.add_option('-p', '--port', dest='port', action="store", help="the listen port", type='int')
-    parser.add_option('--logname', dest='logname', action="store", help="the log name", type='string')
-    parser.add_option('--loglevel', dest='loglevel', action="store", help="the log level", type='int')
-    parser.add_option('-d', '--debug', dest='debug', action="store_true", help="run in debug mode")
-    parser.add_option('--proxypass', dest='proxypass', action="store", help="the host to proxy", type="string")
-
-    options, args = parser.parse_args(sys.argv[1:])
-
-    if not options.logname:
-        options.logname = 'webproxy'
-
-    if not options.loglevel:
-        options.loglevel = 40
-
-    open_log(options.logname, options.loglevel)
-    open_debug()
-    log.trace("start server on %s", options.port)
-    app = ProxyApplication(debug = options.debug, cookie_secret='Q8hZd669bNYG85b9')
-    app.start(options.port)
+options = parse_options()
+app = ProxyApplication(debug = options.open_debug, cookie_secret='Q8hZd669bNYG85b9')
+run_server(app)
 
 
 if __name__ == '__main__':

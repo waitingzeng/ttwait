@@ -2,6 +2,7 @@
 import os
 import sys
 import os.path
+import pycomm
 
 DEBUG = False
 if os.getenv('CUSTOMDEV'):
@@ -124,15 +125,14 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'exadmin',
-    'crispy_forms',
-    'reversion',
-    'custom.order',
     
     # Uncomment the next line to enable the admin:
-    # 'django.contrib.admin',
+    'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
+    'pycomm.django_apps.ext_django',
+    'custom.order',
+    
 )
 
 

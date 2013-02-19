@@ -1,14 +1,9 @@
 from django.conf.urls import patterns, include, url
 
 # Uncomment the next two lines to enable the admin:
-# from django.contrib import admin
-# admin.autodiscover()
+from django.contrib import admin
+admin.autodiscover()
 
-import exadmin
-exadmin.autodiscover()
-
-from exadmin.plugins import xversion
-xversion.registe_models()
 
 urlpatterns = patterns('',
     # Examples:
@@ -19,6 +14,6 @@ urlpatterns = patterns('',
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     # Uncomment the next line to enable the admin:
-    # url(r'^admin/', include(admin.site.urls)),
-    url(r'^diygl/', include(exadmin.site.urls)),
+    url(r'^diygl/', include(admin.site.urls)),
+    #url(r'^diygl/', include(exadmin.site.urls)),
 )
