@@ -1,5 +1,8 @@
 # Django settings for custom project.
 import os
+import sys
+import os.path
+
 DEBUG = False
 if os.getenv('CUSTOMDEV'):
     DEBUG = True
@@ -10,6 +13,8 @@ ADMINS = (
 )
 
 MANAGERS = ADMINS
+
+PROJECT_ROOT = os.path.join(os.path.realpath(os.path.dirname(__file__)), os.pardir)
 
 DATABASES = {
     'default': {
@@ -109,6 +114,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
+    os.path.join(PROJECT_ROOT, "templates"),
 )
 
 INSTALLED_APPS = (
@@ -118,12 +124,22 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'exadmin',
+    'crispy_forms',
+    'reversion',
     'custom.order',
+    
     # Uncomment the next line to enable the admin:
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )
+
+
+
+DATE_FORMAT = 'Y-m-d'
+DATETIME_FORMAT = 'Y-m-d H:i'
+TIME_FORMAT = 'H:i'
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
