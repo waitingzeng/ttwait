@@ -6,6 +6,8 @@ import hashlib
 import time
 import random
 from pycomm.utils import text
+from comm_def import OrderStatus
+from tinymce.models import HTMLField
 
 # Create your models here.
 
@@ -26,9 +28,10 @@ class UserProfile(models.Model):
 class UserOrder(models.Model):
     user = models.ForeignKey(UserProfile)
     order_sn = models.CharField('订单号', max_length=20, unique=True)
-    status = models.PositiveSmallIntegerField('订单状态', default=0)
+    content = HTMLField("订单详情")
+    
+    status = models.PositiveSmallIntegerField('订单状态', default=OrderStatus.unpaid, choices=OrderStatus.attrs.items())
     create_time = models.DateTimeField("创建时间", auto_now_add=True)
-
 
     class Meta:
         verbose_name = '订单'

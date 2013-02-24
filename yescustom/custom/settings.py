@@ -132,6 +132,7 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     'pycomm.django_apps.ext_django',
     'custom.order',
+    'tinymce',
     
 )
 

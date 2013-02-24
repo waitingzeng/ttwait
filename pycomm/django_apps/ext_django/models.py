@@ -10,6 +10,7 @@ from django.db.models.fields.related import ForeignRelatedObjectsDescriptor, Rev
 from django.db.models.base import ModelBase
 from django.core.urlresolvers import reverse
 from django.utils import six
+import types
 
 # Create your models here.
 
@@ -17,7 +18,7 @@ class NewBase(ModelBase):
     def __new__(cls, name, bases, attrs):
         ret = ModelBase.__new__(cls, name, bases, attrs)
         if hasattr(ret, 'init_related_lookup'):
-                ret.init_related_lookup()
+            ret.init_related_lookup()
         return ret
 
 
@@ -81,27 +82,36 @@ class BaseModel(six.with_metaclass(NewBase), models.Model):
         v = getattr(self, name)
         if not v:
             return name, None, short_desc
-        if isinstance(field, models.ForeignKey):
-            if extra not in ['simple', 'full']:
-                v = getattr(v, extra, None)
-            else:
-                v._state.is_simple_info = is_simple_info
-                v = v.json_data()
-        elif repr(v).find('RelatedManager') != -1:
-            fks = []
-            for x in v.all():
-                x._state.is_simple_info = is_simple_info
-                fks.append(x.json_data())
-            v = fks
-        else:
+        
+        if type(v) == types.MethodType:
+            
             if hasattr(v, '__name__'):
                 name = v.__name__
             if hasattr(v, 'short_description'):
                 short_desc = v.short_description
-            if callable(v):
-                v = v()
-        if name == 'module':
-            print short_desc
+            v = v()
+        else:
+            if isinstance(field, models.ForeignKey):
+                if extra not in ['simple', 'full']:
+                    v = getattr(v, extra, None)
+                else:
+                    v._state.is_simple_info = is_simple_info
+                    v = v.json_data()
+
+            elif repr(v).find('RelatedManager') != -1:
+                fks = []
+                for x in v.all():
+                    x._state.is_simple_info = is_simple_info
+                    fks.append(x.json_data())
+                v = fks
+            else:
+                if hasattr(v, '__name__'):
+                    name = v.__name__
+                if hasattr(v, 'short_description'):
+                    short_desc = v.short_description
+                if callable(v):
+                    v = v()
+        
         return name, v, short_desc
 
     def _get_fields_data(self, fieldset):

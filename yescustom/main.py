@@ -132,11 +132,15 @@ class ProxyHandler(BaseHandler):
     def process_request_body(self, body):
         return body
 
-    def process_request(self, request):
+    def get_request_header(self, request):
         headers = {}
         for k, v in request.headers.items():
             if k.lower() not in ['host']:
                 headers[k] = v
+        return headers
+
+    def process_request(self, request):
+        headers = self.get_request_header(request)
         uri = request.uri
         body = request.body
         if body:
@@ -365,11 +369,43 @@ class Cart(HtmlHandler):
 
 
 class CartPayment(HtmlHandler):
+    @tornado.web.asynchronous
     def get(self, order_sn, *args, **kwargs):
         if self.current_user:
             order, create = UserOrder.objects.get_or_create(user=self.current_user, order_sn=order_sn)
 
-        return HtmlHandler.get(self)
+            if not order.content:
+                url = self.application.proxypass + '/myorder-order/code/%s' % order_sn
+                headers = self.get_request_header(self.request)
+
+                req = tornado.httpclient.HTTPRequest(url=url,
+                                                 headers=headers, follow_redirects=False,
+                                                 allow_nonstandard_methods=True)
+
+                def handle_response(response):
+                    if response.error and not isinstance(response.error,
+                                                         tornado.httpclient.HTTPError):
+                        self.set_status(500)
+                        self.write('Internal server error:\n' + str(response.error))
+                        self.finish()
+                    else:
+                        code, headers, body = self._process_response(response)
+                        page = pq(body)
+                        content = page.find('.memberBottomRight1')
+                        content.find('.mt10').eq(0).remove()
+                        order.content = content.html()
+                        order.save()
+                        return HtmlHandler.get(self)
+                        
+                client = tornado.httpclient.AsyncHTTPClient()
+
+                try:
+                    client.fetch(req, handle_response)
+                except tornado.httpclient.HTTPError, e:
+                    return HtmlHandler.get(self)
+            else:
+                return HtmlHandler.get(self)    
+            
 
 
 class AboutUs(HtmlHandler):
@@ -414,8 +450,6 @@ class ProxyApplication(tornado.web.Application):
         self.listen(port, address=address)
         self.io_loop.start()
 
-import base64
-import uuid
 
 from pycomm.ext_tornado.daemon_server import run_server, parse_options
 
@@ -423,6 +457,3 @@ options = parse_options()
 app = ProxyApplication(debug = options.open_debug, cookie_secret='Q8hZd669bNYG85b9')
 run_server(app)
 
-
-if __name__ == '__main__':
-    run_proxy()
