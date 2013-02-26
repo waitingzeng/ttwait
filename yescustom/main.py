@@ -492,13 +492,13 @@ class IPNHandler(BaseHandler):
         # if not the correct receiver email
         if not INSANDBOX and data['txn_type'] != 'subscr_payment' \
         and not data["receiver_email"] == PAYPAL_RECEIVER_EMAIL:
-            self.log.info('Incorrect receiver_email')
-            self.log.info(data['receiver_email'])
+            log.info('Incorrect receiver_email')
+            log.info(data['receiver_email'])
             return False
 
         # if not the correct currency
         if not INSANDBOX and not data.get("mc_currency") == "USD":
-            self.log.info('Incorrect mc_currency')
+            log.info('Incorrect mc_currency')
             return False
 
         # otherwise...
@@ -560,7 +560,7 @@ class IPNHandler(BaseHandler):
         # If there is no txn_id in the received arguments don't proceed
         if data['txn_type'] == 'subscr_payment' \
         and not 'txn_id' in data:
-            self.log.info('IPN: No Parameters')
+            log.info('IPN: No Parameters')
             return
 
         self.log.info('IPN: Verified!')
