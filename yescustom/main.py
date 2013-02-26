@@ -25,6 +25,7 @@ from pyquery import PyQuery as pq
 from custom.order.models import UserProfile, UserOrder
 from pycomm.utils.cache import SimpleFileBasedCache
 from pycomm.utils import text
+from custom.order.comm_def import OrderStatus
 
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -61,8 +62,11 @@ class ProxyHandler(BaseHandler):
                 self.finish()
             else:
                 code, headers, body = self._process_response(response)
-
-                self.set_status(code)
+                try:
+                    self.set_status(code)
+                except AssertionError, info:
+                    self.log.error('not valid code %s', code)
+                    raise info
                 for header in ('Date', 'Cache-Control', 'Server',
                                'Content-Type', 'Location', 'Set-Cookie'):
                     v = headers.get(header)
@@ -94,7 +98,7 @@ class ProxyHandler(BaseHandler):
     @tornado.web.asynchronous
     def post(self, *args, **kwargs):
         self.cache = False
-        return self.get()
+        return self.get(*args, **kwargs )
 
     @tornado.web.asynchronous
     def connect(self):
@@ -175,7 +179,9 @@ class CodeHandler(ProxyHandler):
 class StaticHandler(ProxyHandler):
     cache = True
     response_replaces = [(target_doamin, my_domain),
-         ('Custom Drop', 'Custom DIY Drop'), ('Customdropshipping', ' Customdiydropshipping'), ('yescustom', 'yesdiycustom')
+         ('Custom Drop', 'Custom DIY Drop'), ('Customdropshipping', ' Customdiydropshipping'),
+         ('UA-28350827-1', ''), ('february.cst@hotmail.com', 'chobotracy@gmail.com'), ('kathy.yescustom@gmail.com', ''),
+         ('order.yescustom@yahoo.com', 'yesdiycustom@live.com'),('yescustom', 'yesdiycustom'), ('23.53', '0.01')
          ]
 
     def process_body(self, response, body):
@@ -225,7 +231,6 @@ class HtmlHandler(StaticHandler):
             body = body.replace('%s%s%s' % (begin, content, end), replace)
 
         if self.remove_elms:
-            
             pqbody = pq(body)
 
             for elm in self.get_remove_elms():
@@ -368,6 +373,41 @@ class Cart(HtmlHandler):
     remove_elms = [('.table1', 'eq(1)'), ('.line2', 'eq(1)')]
 
 
+class MyOrderOrders(MyHandler):
+    remove_elms = ['.table5', ('.table1 th', 'eq(5)'), ('.table1 td', 'eq(5)')]
+
+
+class MyOrderDetail(MyHandler):
+    def get(self, order_sn, *args, **kwargs):
+        self.order_sn = order_sn
+        return MyHandler.get(self, order_sn, *args, **kwargs)
+
+    def process_body(self, response, body):
+        body = MyHandler.process_body(self, response, body)
+
+        page = pq(body)
+
+        b = page.find('.memberBottomRight1 .mt10')
+
+        order, create = UserOrder.objects.get_or_create(user=self.current_user, order_sn=self.order_sn)
+        if not order.content:
+            content = pq(body).find('.memberBottomRight1')
+            content.find('.mt10').eq(0).remove()
+            order.content = content.html()
+            order.save()
+
+
+
+        b.eq(0).find('.mt5 .fb').eq(1).text(OrderStatus.attrs[order.status])
+
+        if order.status != OrderStatus.unpaid:
+            page.find('.button1').remove()
+
+        return page.outerHtml()
+
+
+
+
 class CartPayment(HtmlHandler):
     @tornado.web.asynchronous
     def get(self, order_sn, *args, **kwargs):
@@ -407,6 +447,22 @@ class CartPayment(HtmlHandler):
                 return HtmlHandler.get(self)    
             
 
+class CartDone(HtmlHandler):
+    def get(self, order_sn, *args, **kwargs):
+        if self.request.headers['Origin'] != 'https://www.paypal.com':
+            return HtmlHandler.get(self, order_sn, *args, **kwargs)
+
+        
+        #if self.request.headers['Referer'].lower().find('')
+        if self.get_argument('payment_status', 'None') == 'Completed':
+            order, create = UserOrder.objects.get_or_create(user=self.current_user, order_sn=order_sn)
+            order.status = OrderStatus.paid
+            order.save()
+
+        self.redirect('/myorder-order/code/%s' % order_sn)
+        
+        #return HtmlHandler.get(self, order_sn, *args, **kwargs)
+
 
 class AboutUs(HtmlHandler):
     response_replaces = HtmlHandler.response_replaces + [
@@ -431,7 +487,10 @@ handlers = [
     (r'/cart', Cart),
     (r'/myaccount-set_password/.*', MyAccountSetPassword),
     (r'/myaccount-profile/.*', MyAccountProfile),
+    (r'/myorder-order/code/(.*)', MyOrderDetail),
+    (r'/myorder-orders/.*', MyOrderOrders),
     (r'/my.*', MyHandler),
+    (r'/cart-done/cart/(.*)/', CartDone),
     (r'/cart-payment/cart/(.+)/.*', CartPayment),
     (r'/article-about/n/about_us', AboutUs),
     (r'.*', HtmlHandler),

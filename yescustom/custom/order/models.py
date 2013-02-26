@@ -28,6 +28,7 @@ class UserProfile(models.Model):
 class UserOrder(models.Model):
     user = models.ForeignKey(UserProfile)
     order_sn = models.CharField('订单号', max_length=20, unique=True)
+    payid = models.CharField("付款交易号", max_length=200)
     content = HTMLField("订单详情")
     
     status = models.PositiveSmallIntegerField('订单状态', default=OrderStatus.unpaid, choices=OrderStatus.attrs.items())
