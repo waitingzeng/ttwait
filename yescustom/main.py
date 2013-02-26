@@ -47,7 +47,7 @@ else:
     my_domain = 'www.customdiydropshipping.com'
 
 
-INSANDBOX = True
+INSANDBOX = False
 if INSANDBOX:
     PAYPAL_RECEIVER_EMAIL = 'ttsell_1361842354_biz@gmail.com'
 else:
@@ -423,6 +423,9 @@ class CartPayment(HtmlHandler):
     def get(self, order_sn, *args, **kwargs):
         if self.current_user:
             order, create = UserOrder.objects.get_or_create(user=self.current_user, order_sn=order_sn)
+
+            if order.status != OrderStatus.unpaid:
+                return self.redirect('/myorder-order/code/%s' % order_sn)
 
             if not order.content:
                 url = self.application.proxypass + '/myorder-order/code/%s' % order_sn
