@@ -467,7 +467,7 @@ class CartDone(HtmlHandler):
         #return HtmlHandler.get(self, order_sn, *args, **kwargs)
 
 
-class IPNHandler(RequestHandler):
+class IPNHandler(BaseHandler):
     def verify_ipn(self, data):
         # prepares provided data set to inform PayPal we wish to validate the response
         data["cmd"] = "_notify-validate"
@@ -490,14 +490,14 @@ class IPNHandler(RequestHandler):
             return False
 
         # if not the correct receiver email
-        if not sandbox and data['txn_type'] != 'subscr_payment'
+        if not INSANDBOX and data['txn_type'] != 'subscr_payment' \
         and not data["receiver_email"] == PAYPAL_RECEIVER_EMAIL:
             self.log.info('Incorrect receiver_email')
             self.log.info(data['receiver_email'])
             return False
 
         # if not the correct currency
-        if not sandbox and not data.get("mc_currency") == "USD":
+        if not INSANDBOX and not data.get("mc_currency") == "USD":
             self.log.info('Incorrect mc_currency')
             return False
 
@@ -557,15 +557,9 @@ class IPNHandler(RequestHandler):
             data[arg] = self.request.arguments[arg][0]
 
         # If there is no txn_id in the received arguments don't proceed
-        if data['txn_type'] == 'subscr_payment'
+        if data['txn_type'] == 'subscr_payment' \
         and not 'txn_id' in data:
             self.log.info('IPN: No Parameters')
-            return
-
-        # Verify the data received with Paypal
-        if not self.request.host.split(':')[0] == 'localhost'
-        and not self.verify_ipn(data, sandbox):
-            self.log.info('IPN: Unable to verify')
             return
 
         self.log.info('IPN: Verified!')
