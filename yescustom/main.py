@@ -556,6 +556,7 @@ class IPNHandler(BaseHandler):
         for arg in self.request.arguments:
             data[arg] = self.request.arguments[arg][0]
 
+        print '>>>>', data
         # If there is no txn_id in the received arguments don't proceed
         if data['txn_type'] == 'subscr_payment' \
         and not 'txn_id' in data:
