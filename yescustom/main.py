@@ -558,7 +558,7 @@ class IPNHandler(BaseHandler):
 
         log.trace(data)
         # If there is no txn_id in the received arguments don't proceed
-        if data['txn_type'] == 'subscr_payment' \
+        if data['txn_type'] in ('subscr_payment', 'web_accept') \
         and not 'txn_id' in data:
             log.info('IPN: No Parameters')
             return
@@ -569,7 +569,7 @@ class IPNHandler(BaseHandler):
         if data['txn_type'] == 'subscr_signup':
             # initial subscription
             self.subscr_signup(data)
-        elif data['txn_type'] == 'subscr_payment':
+        elif data['txn_type'] in ('subscr_payment', 'web_accept'):
             # subscription renewed
             self.subscr_payment(data)
         elif data['txn_type'] == 'subscr_modify':
