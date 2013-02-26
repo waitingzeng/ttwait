@@ -615,7 +615,7 @@ handlers = [
     (r'/myorder-order/code/(.*)', MyOrderDetail),
     (r'/myorder-orders/.*', MyOrderOrders),
     (r'/my.*', MyHandler),
-    (r'//cart-respond_action/', IPNHandler),
+    (r'/cart-respond_action/', IPNHandler),
     (r'/cart-done/cart/(.*)/', CartDone),
     (r'/cart-payment/cart/(.+)/.*', CartPayment),
     (r'/article-about/n/about_us', AboutUs),
