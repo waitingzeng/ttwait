@@ -188,7 +188,7 @@ class StaticHandler(ProxyHandler):
     cache = True
     response_replaces = [(target_doamin, my_domain),
          ('Custom Drop', 'Custom DIY Drop'), ('Customdropshipping', ' Customdiydropshipping'),
-         ('UA-28350827-1', ''), ('february.cst@hotmail.com', PAYPAL_RECEIVER_EMAIL), ('kathy.yescustom@gmail.com', ''),
+         ('UA-28350827-1', 'UA-791706-49'), ('february.cst@hotmail.com', PAYPAL_RECEIVER_EMAIL), ('kathy.yescustom@gmail.com', ''),
          ('order.yescustom@yahoo.com', 'yesdiycustom@live.com'),('yescustom', 'yesdiycustom'), ('23.53', '0.01')
          ]
 
