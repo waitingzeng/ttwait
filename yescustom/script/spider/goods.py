@@ -24,7 +24,7 @@ class Index(ResponseHandler):
             dl = pq(dl)
             a = dl.find('dt a')
             cid, name = re.findall('\d+$', a.attr('href'))[0], a.text()
-            cat, create = Category.objects.get_or_create(pk=cid)
+            cat, create = Category.objects.get_or_new(pk=cid)
             cat.name = name
             cat.save()
             for dd in dl.find('dd'):
@@ -32,7 +32,7 @@ class Index(ResponseHandler):
                 for a in dd.find('li a'):
                     a = pq(a)
                     child_cid, child_name = re.findall('\d+$', a.attr('href'))[0], a.text()
-                    child_cat, create = Category.objects.get_or_create(pk=child_cid)
+                    child_cat, create = Category.objects.get_or_new(pk=child_cid)
                     child_cat.name = child_name
                     child_cat.parent = cat
                     child_cat.save()
@@ -61,7 +61,7 @@ class SubCategory(ResponseHandler):
             src = src.replace('_t_200_200', '')
             url = Url(name, src, self.response)
             yield url            
-            cat, create = Category.objects.get_or_create(pk=cid)
+            cat, create = Category.objects.get_or_new(pk=cid)
             cat.name = name
             cat.img = urlparse(src).path
             cat.parent_id = parent_id
@@ -137,7 +137,7 @@ class Detail(ResponseHandler):
             color = pq(color)
             value = color.attr('title')
             value2 = color.find('b').css('background')
-            ga, cretae = GoodsInfoAttr.objects.get_or_create(goods_info=goods, attr=attr, value=value.strip())
+            ga, cretae = GoodsInfoAttr.objects.get_or_new(goods_info=goods, attr=attr, value=value.strip())
             ga.extra = value2
             ga.save()
 

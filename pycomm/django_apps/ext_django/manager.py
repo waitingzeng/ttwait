@@ -153,6 +153,12 @@ class ModelManager(models.Manager):
     def get_first(self, *args, **kwargs):
         return self.get_query_set().get_first()
 
+    def get_or_new(self, **kwargs):
+        obj = self.get_or_none(**kwargs)
+        if not obj:
+            return self.model(**kwargs), True
+        return obj, False
+
 def main():
     from mfhui_admin.reviews.models import Reviews
 
