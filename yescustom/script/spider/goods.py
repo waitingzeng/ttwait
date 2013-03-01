@@ -176,7 +176,10 @@ class Detail(ResponseHandler):
 class LoadImage(ResponseHandler):
     def parse(self, path):
         path = urlparse(self.response.url).path
-        os.makedirs(path)
+        path = os.path.dirname(path)
+        if not os.path.exists(path):
+            os.makedirs(path)
+            
         file(path, 'wb').write(self.response.body)
         return
 
