@@ -13,8 +13,10 @@ from .pipeline import BasePipe
 import traceback
 from pycomm.proc import ThreadBase, WorkerFinishException
 
+
 class Spider(ThreadBase):
     default_fetcher = httpclient.HTTPClient().fetch
+
     def __init__(self, pipeline, parser=None, fetcher=None, max_running=1000, name='spider', **kwargs):
         if parser is None:
             parser = Parser(route.get_routes())
@@ -32,7 +34,7 @@ class Spider(ThreadBase):
     def init(self):
         self.pipeline.init()
 
-    def parse(self, url):
+    def parse(self, url, **kwargs):
         try:
             response = self.fetcher(url)
         except Exception, info:
@@ -48,7 +50,7 @@ class Spider(ThreadBase):
         response = Response(response)
         info = ''
         try:
-            for r in self._parser(response):
+            for r in self._parser(response, **kwargs):
                 if isinstance(r, Result):
                     self.log.trace("url %s start result %s", url, r)
                     self.pipeline.save_result(response, r)
@@ -56,9 +58,9 @@ class Spider(ThreadBase):
                     if r.skip:
                         self.log.debug("url %s skip %s", url, r.href)
                         continue
-                    
+
                     self.log.debug("url %s push url %s", url, r.full_url)
-                    self.pipeline.push_url(r.full_url, r.title)
+                    self.pipeline.push_url(r.full_url, r.title, r.priority, **r.kwargs)
 
             status = UrlStatus.success
         except NotFoundHandler:
@@ -72,20 +74,18 @@ class Spider(ThreadBase):
         self.pipeline.set_status(url, status, info)
         self.log.trace("url %s set_status %s[%s]", url, status, UrlStatus.attrs[status])
 
-
-    def run_one(self, url):
+    def run_one(self, url, **kwargs):
         if not self._parser.find_handler(url):
             status = UrlStatus.nothandler
             self.pipeline.set_status(url, status)
             self.log.trace("url %s set_status %s[%s]", url, status, UrlStatus.attrs[status])
             return
-        
 
         self.runnings += 1
 
         self.log.trace("begin parse url %s", url)
 
-        self.parse(url)
+        self.parse(url, **kwargs)
 
     def run_test(self, options, args):
         for arg in args:
@@ -95,8 +95,8 @@ class Spider(ThreadBase):
     def work(self, name, id):
         with self.lock:
             try:
-                url = self.pipeline.next()
+                url, kwargs = self.pipeline.next()
             except StopIteration:
                 self.log.trace("run spider finish")
                 raise WorkerFinishException
-        self.run_one(str(url))
+        self.run_one(str(url), **(kwargs or {}))

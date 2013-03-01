@@ -29,6 +29,7 @@ from custom.order.comm_def import OrderStatus
 
 
 class BaseHandler(tornado.web.RequestHandler):
+    retry = 3
     def get_current_user(self):
         try:
             profile_id = self.get_secure_cookie('profile_id', max_age_days=31 * 1000)
@@ -60,6 +61,7 @@ class ProxyHandler(BaseHandler):
 
     @tornado.web.asynchronous
     def get(self, *args, **kwargs):
+
         log.trace("%s %s", self.request.method, self.request.uri)
 
         def handle_response(response):
@@ -74,7 +76,12 @@ class ProxyHandler(BaseHandler):
                     self.set_status(code)
                 except AssertionError, info:
                     log.error('not valid code %s', code)
-                    raise info
+                    if self.retry == 0:
+                        raise info
+                    else:
+                        self.retry -= 1
+                        return self.get(*args, **kwargs)
+
                 for header in ('Date', 'Cache-Control', 'Server',
                                'Content-Type', 'Location', 'Set-Cookie'):
                     v = headers.get(header)

@@ -13,7 +13,6 @@ from pyquery import PyQuery as pq
 from pycomm.utils.encoding import any_to_unicode
 
 
-
 class ResponseHandler(object):
     def __init__(self, parser, response, **kwargs):
         super(ResponseHandler, self).__init__()
@@ -33,6 +32,7 @@ class ResponseHandler(object):
         return self.parser.settings
 
     _ARG_DEFAULT = []
+
     def get_argument(self, name, default=_ARG_DEFAULT, strip=True):
         args = self.get_arguments(name, strip=strip)
         if not args:
@@ -61,8 +61,8 @@ class ResponseHandler(object):
         pass
 
     def parse(self, *args, **kwargs):
-        raise 
-    
+        raise
+
     def find_handler(self, href):
         url = Url('', href, self.response)
         return self.parser.find_handler(url.full_url.lower())
@@ -98,7 +98,6 @@ class ResponseHandler(object):
                 continue
             if self.find_handler(href):
                 yield self.get_url(a)
-        
 
     def _execute(self, transforms, *args, **kwargs):
         self._transforms = transforms
@@ -107,16 +106,13 @@ class ResponseHandler(object):
             self.prepare()
             if not self._finished:
                 args = [self.decode_argument(arg) for arg in args]
-                kwargs = dict((k, self.decode_argument(v, name=k))
-                              for (k, v) in kwargs.iteritems())
+                
                 res = self.parse(*args, **kwargs)
                 if isinstance(res, types.GeneratorType):
                     for item in res:
-
                         yield item
                 else:
                     yield res
-
 
         except Exception, e:
             self.log.exception()
@@ -125,9 +121,11 @@ class ResponseHandler(object):
     def _handle_request_exception(self, e):
         pass
 
+
 class NotFoundHandler(Exception):
     def __init__(self, response):
         self.response = response
+
 
 class CollectUrlsHandler(ResponseHandler):
     def parse(self, *args, **kwargs):
@@ -166,7 +164,7 @@ class Parser(object):
             self.handlers.append((re.compile(host_pattern), handlers))
 
         for spec in host_handlers:
-            if type(spec) is type(()):
+            if isinstance(spec, type(())):
                 assert len(spec) in (2, 3)
                 pattern = spec[0]
                 handler = spec[1]
@@ -214,8 +212,7 @@ class Parser(object):
                     return True
         return False
 
-
-    def __call__(self, response):
+    def __call__(self, response, **kwargs):
         """Called by HTTPServer to execute the request."""
         if not isinstance(response, Response):
             response = Response(response)
@@ -223,12 +220,12 @@ class Parser(object):
         transforms = [t(response) for t in self.transforms]
         handler = None
         args = []
-        kwargs = {}
         handlers = self._get_host_handlers(response.netloc.lower().split(':')[0])
         if not handlers:
-            handler = DefaultHandler(self, response)
+            handler = DefaultHandler(self, response, **kwargs)
         else:
             for spec in handlers:
+
                 match = spec.regex.match(response.path.lower())
                 if match:
                     handler = spec.handler_class(self, response, **spec.kwargs)
@@ -245,12 +242,7 @@ class Parser(object):
                         # Note that args are passed as bytes so the handler can
                         # decide what encoding to use.
 
-                        if spec.regex.groupindex:
-                            kwargs = dict(
-                                (str(k), unquote(v))
-                                for (k, v) in match.groupdict().iteritems())
-                        else:
-                            args = [unquote(s) for s in match.groups()]
+                        args = [unquote(s) for s in match.groups()]
                     break
             if not handler:
                 raise NotFoundHandler(response)
@@ -258,7 +250,7 @@ class Parser(object):
         # In debug mode, re-compile templates and reload static files on every
         # request so you don't need to restart to see changes
         return handler._execute(transforms, *args, **kwargs)
-        
+
     def reverse_url(self, name, *args):
         if name in self.named_handlers:
             return self.named_handlers[name].reverse(*args)

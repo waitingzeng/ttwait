@@ -20,11 +20,12 @@ class Result(Storage):
         pass
 
 class Url(object):
-    def __init__(self, title, href, response=None, priority=0):
+    def __init__(self, title, href, response=None, priority=0, **kwargs):
         self.title = title
         self.href = href
         self.priority = priority or 0
         self.response = response
+        self.kwargs = kwargs
         if response:
             self.full_url = urlparse.urljoin(response.url, href)
         else:
