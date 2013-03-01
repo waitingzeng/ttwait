@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #coding=utf8
-from tornado.web import URLSpec, import_object
+from tornado.web import URLSpec, import_object, HTTPError
 from tornado.escape import native_str, parse_qs_bytes
 from tornado.httpclient import HTTPResponse
 from tornado.escape import utf8, _unicode, url_unescape

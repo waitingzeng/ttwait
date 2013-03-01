@@ -65,8 +65,8 @@ class GoodsInfo(models.Model):
     price = models.FloatField("价格", blank=True, default=0)
     tags = models.ManyToManyField("Tags", verbose_name='Tags')
 
-    detail = models.TextField("详情", blank=True, default='')
-    design_data = models.TextField("设计数据", blank=True, default='')
+    detail = models.TextField("详情", blank=True)
+    design_data = models.TextField("设计数据", blank=True)
     category = models.ForeignKey(Category, null=True)
     attrs = models.ManyToManyField(GoodsAttr, verbose_name='attrs', through="GoodsInfoAttr")
     can_addcart = models.BooleanField("可直接添加购物车", default=False, blank=True)

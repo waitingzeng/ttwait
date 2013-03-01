@@ -15,6 +15,12 @@ from pycomm.proc import ThreadBase, WorkerFinishException
 
 
 class Spider(ThreadBase):
+    request_default = {
+        'connect_timeout' : 20,
+        'request_timeout' : 20,
+    }
+    
+
     default_fetcher = httpclient.HTTPClient().fetch
 
     def __init__(self, pipeline, parser=None, fetcher=None, max_running=1000, name='spider', **kwargs):
@@ -36,7 +42,7 @@ class Spider(ThreadBase):
 
     def parse(self, url, **kwargs):
         try:
-            response = self.fetcher(url)
+            response = self.fetcher(url, **self.request_default)
         except Exception, info:
             status = UrlStatus.error
             self.pipeline.set_status(url, status, info)

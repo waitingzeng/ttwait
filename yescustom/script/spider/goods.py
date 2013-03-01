@@ -73,7 +73,7 @@ class SubCategory(ResponseHandler):
 
 @route('/personalized-designs/personalized/(.*?)/page/(\d+)')
 class Design(ResponseHandler):
-    def parse(self, cname, page, **kwargs):
+    def parse(self, cname, cur_page, **kwargs):
         cid = kwargs.get('cid', None)
 
         body = self.response.body
@@ -89,13 +89,15 @@ class Design(ResponseHandler):
             goods, create = GoodsInfo.objects.get_or_create(pk=pid)
             goods.category_id = cid
             goods.name = name
-            goods.price = li.find('.designList2Text .fb').text().strip('$')
+            goods.price = li.find('.designList2Text .fb').eq(0).text().strip('$')
             goods.save()
 
         for a in page.find('.page1 a'):
             a = pq(a)
             if a.text().strip() == 'Next':
-                yield Url('%s_%s' % (cid, page), a.attr('href'), self.response)
+                self.log.trace("get next page for %s", self.response.url)
+                yield Url('%s_%s' % (cid, cur_page), a.attr('href'), self.response)
+
 
 
 @route('/personalized-design/personalized/.*')
@@ -170,10 +172,25 @@ class Detail(ResponseHandler):
 
 
 
+@route(['(/.*\.jpg)', '(/.*\.gif)', '(/.*\.png)'])
+class LoadImage(ResponseHandler):
+    def parse(self, path):
+        path = urlparse(self.response.url).path
+        os.makedirs(path)
+        file(path, 'wb').write(self.response.body)
+        return
+
+
+class GoodsSpider(Spider):
+    request_default = {
+        'connect_timeout' : 100,
+        'request_timeout' : 100,
+    }
+
 def main():
     start_urls = ['http://www.customdropshipping.com/personalized']
     pipeline = CustomGoodsPipeline(start_urls)
-    spider = Spider(pipeline, max_running=1000000)
+    spider = GoodsSpider(pipeline, max_running=1000000)
 
     spider.run()
 
