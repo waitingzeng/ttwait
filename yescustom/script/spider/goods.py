@@ -176,7 +176,7 @@ class LoadImage(ResponseHandler):
     def parse(self, path):
         filename = urlparse(self.response.url).path
         filename = 'img' + filename
-        path = os.path.dirname(path)
+        path = os.path.dirname(filename)
         if not os.path.exists(path):
             os.makedirs(path)
 
