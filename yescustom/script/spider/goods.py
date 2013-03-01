@@ -10,6 +10,7 @@ from pycomm.libs.spider import ResponseHandler, route, Spider, Url
 from custom.goods.models import Category, GoodsInfo, GoodsAttr, GoodsInfoAttr, Tags, GoodsImg
 from pyquery import PyQuery as pq
 import re
+import traceback
 from urlparse import urljoin, urlparse
 
 
@@ -29,11 +30,12 @@ class Index(ResponseHandler):
             for dd in dl.find('dd'):
                 dd = pq(dd)
                 for a in dd.find('li a'):
+                    a = pq(a)
                     child_cid, child_name = re.findall('\d+$', a.attr('href'))[0], a.text()
                     child_cat, create = Category.objects.get_or_create(pk=child_cid)
                     child_cat.name = child_name
                     child_cat.parent = cat
-                    cat.save()
+                    child_cat.save()
                     href = urljoin(self.response.url, a.attr('href'))
                     yield Url(child_name, href, cid=child_cid)
 
@@ -41,7 +43,7 @@ class Index(ResponseHandler):
 @route('/personalized-category/personalized/.*')
 class SubCategory(ResponseHandler):
     def parse(self, **kwargs):
-        cid = kwargs.get('cid', None)
+        parent_id = kwargs.get('cid', None)
 
         body = self.response.body
 
@@ -49,7 +51,10 @@ class SubCategory(ResponseHandler):
         for a in page.find('.cateList3 li .cateList3Pic a'):
             a = pq(a)
             img = a.find('img')
-            cid, name = re.findall('\d+$', a.attr('href'))[0], img.attr('alt').strip()
+            try:
+                cid, name = re.findall('\d+$', a.attr('href'))[0], img.attr('alt').strip()
+            except IndexError:
+                continue
             src = img.attr('src')
             url = Url(name, src, self.response)
             yield url
@@ -59,7 +64,7 @@ class SubCategory(ResponseHandler):
             cat, create = Category.objects.get_or_create(pk=cid)
             cat.name = name
             cat.img = urlparse(src).path
-            cat.parent_id = cid
+            cat.parent_id = parent_id
             cat.save()
 
             href = urljoin(self.response.url, a.attr('href') + '/page/1')
