@@ -175,12 +175,12 @@ class Detail(ResponseHandler):
 @route(['(/.*\.jpg)', '(/.*\.gif)', '(/.*\.png)'])
 class LoadImage(ResponseHandler):
     def parse(self, path):
-        path = urlparse(self.response.url).path
+        filename = urlparse(self.response.url).path
         path = os.path.dirname(path)
         if not os.path.exists(path):
             os.makedirs(path)
-            
-        file(path, 'wb').write(self.response.body)
+
+        file(filename, 'wb').write(self.response.body)
         return
 
 
