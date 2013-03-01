@@ -10,7 +10,6 @@ from pycomm.libs.spider import ResponseHandler, route, Spider, Url
 from custom.goods.models import Category, GoodsInfo, GoodsAttr, GoodsInfoAttr, Tags, GoodsImg
 from pyquery import PyQuery as pq
 import re
-import traceback
 from urlparse import urljoin, urlparse
 
 
@@ -176,6 +175,7 @@ class Detail(ResponseHandler):
 class LoadImage(ResponseHandler):
     def parse(self, path):
         filename = urlparse(self.response.url).path
+        filename = 'img' + filename
         path = os.path.dirname(path)
         if not os.path.exists(path):
             os.makedirs(path)
