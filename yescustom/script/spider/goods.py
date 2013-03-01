@@ -139,7 +139,7 @@ class Detail(ResponseHandler):
             ga.extra = value2
             ga.save()
 
-        goods.can_addcart = right.find('a').text().indexOf('to cartCustomize')
+        goods.can_addcart = right.find('a').text().find('to cartCustomize') != -1
 
         detail = page.find('.mt20').eq(1).html()
         detail = detail.replace('http://www.customdropshipping.com', '')
