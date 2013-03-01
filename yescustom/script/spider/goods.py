@@ -126,7 +126,7 @@ class Detail(ResponseHandler):
             if txt.startswith('Tags'):
                 for a in mt10.find('a'):
                     tag = pq(a).text()
-                    tag = Tags.objects.get_or_create(name=tag)
+                    tag, create = Tags.objects.get_or_create(name=tag)
                     goods.tags.add(tag)
 
         ###color
