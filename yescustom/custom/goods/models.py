@@ -61,15 +61,15 @@ class Tags(TermsBase):
 
 
 class GoodsInfo(models.Model):
-    name = models.CharField("商品名称", max_length=200)
-    price = models.FloatField("价格")
+    name = models.CharField("商品名称", max_length=200, blank=True, default='')
+    price = models.FloatField("价格", blank=True, default=0)
     tags = models.ManyToManyField("Tags", verbose_name='Tags')
 
-    detail = models.TextField("详情")
-    design_data = models.TextField("设计数据")
-    category = models.ForeignKey(Category)
+    detail = models.TextField("详情", blank=True)
+    design_data = models.TextField("设计数据", blank=True)
+    category = models.ForeignKey(Category, blank=True)
     attrs = models.ManyToManyField(GoodsAttr, verbose_name='attrs', through="GoodsInfoAttr")
-    can_addcart = models.BooleanField("可直接添加购物车", default=False)
+    can_addcart = models.BooleanField("可直接添加购物车", default=False, blank=True)
 
     class Meta:
         verbose_name = "产品"
