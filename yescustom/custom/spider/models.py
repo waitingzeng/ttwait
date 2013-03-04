@@ -10,10 +10,21 @@ from pycomm.libs.spider.pipeline import DjangoPipeline
 
 
 class CustomGoodsSpiderUrls(SpiderUrlsBase):
-    class Meta:
-        verbose_name = 'customdropshipping'
-        verbose_name_plural = verbose_name
+    pass
 
 
-class CustomGoodsPipeline(DjangoPipeline):
-    model = CustomGoodsSpiderUrls
+class ArtSpiderUrls(SpiderUrlsBase):
+    pass
+
+
+class BGSpiderUrls(SpiderUrlsBase):
+    pass
+
+
+class FontSpiderUrls(SpiderUrlsBase):
+    pass
+
+
+class CustomProductSpiderUrls(SpiderUrlsBase):
+    pass
+

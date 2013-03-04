@@ -5,7 +5,7 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "custom.settings"
 import sys
 sys.path.insert(0, os.path.dirname('../../'))
 
-from custom.spider.models import CustomGoodsPipeline
+from custom.spider.models import CustomGoodsSpiderUrls
 from pycomm.libs.spider import ResponseHandler, route, Spider, Url
 from custom.goods.models import Category, GoodsInfo, GoodsAttr, GoodsInfoAttr, Tags, GoodsImg
 from pyquery import PyQuery as pq
@@ -142,7 +142,7 @@ class Detail(ResponseHandler):
 
         goods.can_addcart = right.find('a').text().find('to cartCustomize') != -1
 
-        detail = page.find('.mt20').eq(1).html()
+        detail = page.find('.mainContentLeft2 .mt20').eq(1).html()
         detail = detail.replace('http://www.customdropshipping.com', '')
         goods.detail = detail
 
@@ -192,7 +192,7 @@ class GoodsSpider(Spider):
 
 def main():
     start_urls = ['http://www.customdropshipping.com/personalized']
-    pipeline = CustomGoodsPipeline(start_urls)
+    pipeline = CustomGoodsSpiderUrls.pipeline(start_urls)
     spider = GoodsSpider(pipeline, max_running=1000000)
 
     spider.run()

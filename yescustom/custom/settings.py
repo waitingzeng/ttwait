@@ -134,6 +134,7 @@ INSTALLED_APPS = (
     'custom.order',
     'custom.spider',
     'custom.goods',
+    'custom.design',
     'tinymce',
     
 )
