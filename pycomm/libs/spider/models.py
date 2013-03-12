@@ -7,6 +7,7 @@ import urlparse
 from django.db import models
 
 from .utils import UrlStatus
+from .pipeline import DjangoPipeline
 from pycomm.django_apps.ext_django.manager import ModelManager
 
 
@@ -33,8 +34,6 @@ class SpiderUrlsBase(models.Model):
 
     class Meta:
         abstract = True
-        verbose_name = '爬虫链接'
-        verbose_name_plural = '爬虫链接'
         ordering = ('-priority', 'id')
 
     def __unicode__(self):
@@ -49,3 +48,12 @@ class SpiderUrlsBase(models.Model):
     @staticmethod
     def autocomplete_search_fields():
         return ("id__iexact", "url__icontains",)
+
+    @classmethod
+    def pipeline(cls, *args):
+        pipe =  type(cls.__name__ + 'Pipeline', (DjangoPipeline,), {'model' : cls})
+        if args:
+            return pipe(*args)
+        return pipe
+
+

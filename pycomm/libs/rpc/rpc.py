@@ -1,16 +1,14 @@
 #!/usr/bin/python
 # coding: utf-8
-try:
-    import ujson as json
-except ImportError:
-    import json
+from pycomm.utils.escape import json_encode
 from pycomm.log import log
 from .server import STPServer
 from tornado.ioloop import IOLoop
-from pycomm.utils.ioloop import ioloop
+
 
 class Application(object):
     RUN_TIMES = 0
+
     def __init__(self, request_handler=None):
         self.request_handler = request_handler
 
@@ -30,7 +28,8 @@ class Application(object):
 
     def start(self):
         log.trace('start server %s', self.address)
-        ioloop.IOLoop.instance().start()
+        IOLoop.instance().start()
+
 
 class RequestHandler(object):
     def __init__(self, application, request, **kwargs):
@@ -44,7 +43,7 @@ class RequestHandler(object):
     addarg = appendarg
 
     def finish(self):
-        data = json.dumps(self.resp)
+        data = json_encode(self.resp)
         self.request.connection.stream.write('%d\r\n%s\r\n' % (len(data), data))
 
         self.request.connection.stream.write('\r\n')

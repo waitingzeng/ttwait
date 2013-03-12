@@ -1,13 +1,9 @@
 #!/usr/bin/python
 # coding: utf-8
-try:
-    import ujson as json
-except ImportError:
-    import json
-
+from pycomm.utils.escape import json_decode, json_encode
 import collections
-from pycomm.utils.ioloop.ioloop import IOLoop
-from pycomm.utils.ioloop.iostream import IOStream
+from tornado.ioloop import IOLoop
+from tornado.iostream import IOStream
 import socket
 import time
 
@@ -46,7 +42,7 @@ class STPRequest(object):
         return len(self._argv)
 
     def serialize(self):
-        buf = json.dumps(self._argv)
+        buf = json_encode(self._argv)
         buf = '%d\r\n%s\r\n' % (len(buf), buf)
         buf += '\r\n'
         return buf
@@ -209,7 +205,7 @@ class Connection(object):
                                                 error=ProtocolError(str(e))))
 
     def _on_arg(self, data):
-        self._response._argv = json.loads(data)
+        self._response._argv = json_decode(data)
         self.stream.read_until(b'\r\n', self._on_strip_arg_eol)
 
     def _on_strip_arg_eol(self, data):

@@ -7,43 +7,38 @@ from changelist import ExportChangeList, QuerySetChangeList
 from django.core.exceptions import PermissionDenied
 from django.template.response import SimpleTemplateResponse, TemplateResponse
 from django.http import HttpResponse
-from django.contrib.admin.options import csrf_protect_m, update_wrapper
+from django.contrib.admin.options import update_wrapper
 from django.utils.translation import ugettext as _
 from django.utils.encoding import force_text
 from pycomm.utils.pprint import pformat
-from pycomm.log import log, PrefixLog
-from django.contrib.admin.views.main import ALL_VAR
+from pycomm.log import PrefixLog
 from actions import csv_export_selected
 from django.contrib.admin import widgets
-from django.core.exceptions import PermissionDenied
-from pprint import pprint
-from django.core.urlresolvers import reverse
-from django.db.models.fields.related import ForeignRelatedObjectsDescriptor, ReverseManyRelatedObjectsDescriptor
+from django.db.models.fields.related import ReverseManyRelatedObjectsDescriptor
+
 
 class ModelAdmin(admin.ModelAdmin):
     list_export_fields = None
     stat_list_filter = None
 
     class Media:
-        css = { "all" : ("css/custom.css",) }
-        js = ("js/custom.js",) 
+        css = {"all": ("css/custom.css",)}
+        js = ("js/custom.js",)
 
     def __init__(self, *args, **kwargs):
         admin.ModelAdmin.__init__(self, *args, **kwargs)
         info = self.model._meta.app_label, self.model._meta.module_name
         self.log = PrefixLog('admin:%s_%s' % info)
-        
 
     def has_view_permission(self, request, obj=None):
         opts = self.opts
-        view_permission = 'view_%s' %self.model._meta.module_name
+        view_permission = 'view_%s' % self.model._meta.module_name
         return request.user.has_perm(opts.app_label + '.' + view_permission)
 
     def has_verify_permission(self, request, obj=None):
         opts = self.opts
-        verify_permission = 'verify_%s' %self.model._meta.module_name
+        verify_permission = 'verify_%s' % self.model._meta.module_name
         return request.user.has_perm(opts.app_label + '.' + verify_permission)
-
 
     def has_export_permission(self, request, obj=None):
         opts = self.opts
@@ -55,7 +50,6 @@ class ModelAdmin(admin.ModelAdmin):
         stat_permission = 'stat_%s' % opts.module_name
         return request.user.has_perm(opts.app_label + '.' + stat_permission)
 
-
     def has_change_permission(self, request, obj=None):
         ret = admin.ModelAdmin.has_change_permission(self, request, obj)
         if ret:
@@ -65,17 +59,16 @@ class ModelAdmin(admin.ModelAdmin):
                 return False
             return True
 
-
     def has_raw_change_permission(self, request, obj=None):
         return admin.ModelAdmin.has_change_permission(self, request, obj)
-        
+
     def get_model_perms(self, request):
         value = admin.ModelAdmin.get_model_perms(self, request)
         value['view'] = self.has_view_permission(request)
         value['export'] = self.has_export_permission(request)
         value['stat'] = self.has_stat_permission(request)
         value['verify'] = self.has_verify_permission(request)
-        return value        
+        return value
 
     def log_change(self, request, object, message):
         if not object:
@@ -122,10 +115,10 @@ class ModelAdmin(admin.ModelAdmin):
 
         info = self.model._meta.app_label, self.model._meta.module_name
         export_url = patterns('',
-            url(r'^stat/$',
-                self.wrap(self.stat_view),
-                name='%s_%s_stat' % info),
-        )
+                              url(r'^stat/$',
+                                  self.wrap(self.stat_view),
+                                  name='%s_%s_stat' % info),
+                              )
 
         urlpatterns = self.get_custom_urls(info)
         if not urlpatterns:
@@ -156,7 +149,7 @@ class ModelAdmin(admin.ModelAdmin):
 
     def get_export_fields(self, request):
         fields = [(x.name, x.verbose_name) for x in self.opts.fields]
-        
+
         if not self.list_export_fields:
             return fields
 
@@ -176,9 +169,9 @@ class ModelAdmin(admin.ModelAdmin):
         opts = model._meta
         app_label = opts.app_label
         cl = QuerySetChangeList(model, queryset, list_display, model_admin=model_admin)
-        
+
         context = {
-            'cl' : cl,
+            'cl': cl,
         }
 
         response = SimpleTemplateResponse([
@@ -188,7 +181,6 @@ class ModelAdmin(admin.ModelAdmin):
         response.render()
         return response.content
 
-    
     def get_chartit(self, request, cl):
         raise NotImplementedError
 
@@ -203,19 +195,19 @@ class ModelAdmin(admin.ModelAdmin):
         list_display = self.get_list_display(request)
         list_filter = self.stat_list_filter and self.list_filter + self.stat_list_filter or self.list_filter
         cl = ExportChangeList(self, request, self.model, list_display, list_filter)
-        
+
         stat_chartit = self.get_chartit(request, cl)
         context = {
-                'app_label': app_label,
-                'media': self.media,
-                'stat_chartit' : stat_chartit,
-                'cl' : cl,
-                'opts' : opts,
-            }
+            'app_label': app_label,
+            'media': self.media,
+            'stat_chartit': stat_chartit,
+            'cl': cl,
+            'opts': opts,
+        }
         res = TemplateResponse(request, [
-        "admin/%s/%s/stat_result.html" % (app_label, opts.object_name.lower()),
-        'admin/%s/stat_result.html' % app_label,
-        "admin/stat_result.html"], context, current_app=self.admin_site.name)
+                               "admin/%s/%s/stat_result.html" % (app_label, opts.object_name.lower()),
+                               'admin/%s/stat_result.html' % app_label,
+                               "admin/stat_result.html"], context, current_app=self.admin_site.name)
         self.add_response_media(res)
         return res
 
@@ -236,7 +228,6 @@ class ModelAdmin(admin.ModelAdmin):
 
     def after_changelist_view(self, request, response):
         pass
-
 
     def changelist_view(self, request, extra_context=None):
         self.list_editable = self.get_list_editable(request) or self.__class__.list_editable
@@ -260,7 +251,7 @@ class ModelAdmin(admin.ModelAdmin):
                 params = ''
             response.context_data['querystring'] = params
             self.add_response_media(response)
-            
+
         except:
             pass
 
@@ -270,7 +261,7 @@ class ModelAdmin(admin.ModelAdmin):
         if isinstance(ret, HttpResponse):
             return ret
 
-        return response                
+        return response
 
     def before_change_view(self, request, object_id, form_url, extra_context):
         pass
@@ -299,13 +290,11 @@ class ModelAdmin(admin.ModelAdmin):
             return ret
         return response
 
-
     def get_actions(self, request):
         actions = super(ModelAdmin, self).get_actions(request)
         if self.has_export_permission(request):
             actions[csv_export_selected.__name__] = (csv_export_selected, csv_export_selected.__name__, csv_export_selected.short_description)
         return actions
-
 
     def formfield_for_dbfield(self, db_field, **kwargs):
         request = kwargs.get("request", None)
@@ -314,12 +303,12 @@ class ModelAdmin(admin.ModelAdmin):
         if formfield and db_field.name in self.raw_id_fields:
 
             related_modeladmin = self.admin_site._registry.get(
-                                                        db_field.rel.to)
+                db_field.rel.to)
             can_add_related = bool(related_modeladmin and
-                        related_modeladmin.has_add_permission(request))
+                                   related_modeladmin.has_add_permission(request))
             formfield.widget = widgets.RelatedFieldWidgetWrapper(
-                        formfield.widget, db_field.rel, self.admin_site,
-                        can_add_related=can_add_related)
+                formfield.widget, db_field.rel, self.admin_site,
+                can_add_related=can_add_related)
 
         return formfield
 
@@ -332,9 +321,11 @@ StackedInline = admin.StackedInline
 
 VERTICAL = admin.VERTICAL
 
+
 def create_admin_models(model):
     opt = model._meta
     fields = opt.local_fields
+
     class AutoModelAdmin(ModelAdmin):
         list_per_page = 20
         list_select_related = False
@@ -346,8 +337,8 @@ def create_admin_models(model):
         [x.name for x in fields if isinstance(x, (models.CharField, models.TextField))]
 
     AutoModelAdmin.list_filter = getattr(model, 'list_filter', []) or \
-        [x.name for x in fields if x.choices or isinstance(x, models.DateTimeField) or isinstance(x, models.BooleanField) ]
-    AutoModelAdmin.list_editable = [x for x in  AutoModelAdmin.list_filter if x in AutoModelAdmin.list_display]
+        [x.name for x in fields if x.choices or isinstance(x, models.DateTimeField) or isinstance(x, models.BooleanField)]
+    AutoModelAdmin.list_editable = [x for x in AutoModelAdmin.list_filter if x in AutoModelAdmin.list_display]
 
     fks = [x.name for x in fields if isinstance(x, models.ForeignKey)]
     m2m = []
@@ -357,8 +348,8 @@ def create_admin_models(model):
 
     AutoModelAdmin.raw_id_fields = fks + m2m
     AutoModelAdmin.autocomplete_lookup_fields = {
-        'fk' : fks,
-        'm2m' : m2m,
+        'fk': fks,
+        'm2m': m2m,
     }
 
     #datetime_fields = [x.name for x in fields if isinstance(x, models.DateTimeField)]
@@ -366,14 +357,16 @@ def create_admin_models(model):
     #    AutoModelAdmin.date_hierarchy = getattr(model, 'date_hierarchy', None) or datetime_fields[0]
     return AutoModelAdmin
 
+
 def auto_admin_for_models(app_models, app_labels=None, register=True):
     admins = []
+    print app_labels
     for name in dir(app_models):
         model = getattr(app_models, name)
-    
+        print model
         if getattr(model, 'noadmin', False):
             continue
-        
+
         if isinstance(model, type) and issubclass(model, models.Model) and model not in admin.site._registry:
             opt = model._meta
 
@@ -383,12 +376,9 @@ def auto_admin_for_models(app_models, app_labels=None, register=True):
             if app_labels and opt.app_label not in app_labels:
                 continue
 
-
             model_admin = create_admin_models(model)
 
             if register:
                 admin.site.register(model, model_admin)
             admins.append(model_admin)
     return admins
-
-

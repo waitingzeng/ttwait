@@ -2,11 +2,8 @@
 # coding: utf-8
 from pycomm.log import log
 import socket
-try:
-    import ujson as json
-except ImportError:
-    import json
-from pycomm.utils.ioloop.netutil import TCPServer
+from pycomm.utils.escape import json_decode
+from tornado.netutil import TCPServer
 
 
 class STPServer(TCPServer):
@@ -49,7 +46,7 @@ class STPConnection(object):
             self.stream.read_bytes(arglen, self._on_arg)
 
     def _on_arg(self, data):
-        args = json.loads(data)
+        args = json_decode(data)
         self._request.parse(args)
         self.stream.read_until(b'\r\n', self._on_strip_arg_endl)
 

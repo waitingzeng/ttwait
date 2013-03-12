@@ -4,6 +4,7 @@ import sys
 import re
 import time
 import os
+import os.path as osp
 from random import randint, randrange
 import traceback
 import hashlib
@@ -227,6 +228,12 @@ def sleep(sec=0):
             break
 
 
+
+def force_write(filename, content, mode='wb'):
+    path = osp.dirname(osp.abspath(filename))
+    if not osp.exists(path):
+        os.makedirs(path)
+    return file(filename, mode).write(content)
 
 if __name__=='__main__':
     #print list(smart_split(u'被上诉人 (原审原告): 张某某, 女.'))

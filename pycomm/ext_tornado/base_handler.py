@@ -95,7 +95,7 @@ class BaseHandler(RequestHandler):
         content_type = kwargs.pop('content_type', 'application/json')
         self.set_header('Content-Type', content_type)
         data = json.dumps(kwargs)
-        self.log.trace("%s", data)
+        self.log.debug("%s", data)
         return data
 
     def render_json(self, **kwargs):

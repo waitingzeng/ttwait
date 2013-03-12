@@ -410,7 +410,12 @@ class AutoSlugField(SlugField):
             slug = getattr(model_instance, self.attname)
             # model_instance is being modified, and overwrite is False,
             # so instead of doing anything, just return the current slug
-            return slug
+            if slug:
+                return slug
+            slug_for_field = lambda field: self.slugify_func(getattr(model_instance, field))
+            slug = self.separator.join(map(slug_for_field, self._populate_from))
+            next = 3
+
 
         # strip slug depending on max_length attribute of the slug field
         # and clean-up

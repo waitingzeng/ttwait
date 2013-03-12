@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #coding=utf8
-
+from pycomm.utils.storage import Storage
 # json module is in the standard library as of python 2.6; fall back to
 # simplejson if present for older versions.
 
@@ -53,12 +53,14 @@ except Exception:
 
 
 def json_encode(value):
-    if not value:
-        return value
     return _json_encode(value)
 
 
 def json_decode(value):
-    if not value:
-        return value
     return _json_decode(to_basestring(value))
+
+
+json_pickle = Storage({'loads' : json_decode, 'dumps' : json_encode})
+
+if __name__ == '__main__':
+    print json_pickle.dumps([1,2,])

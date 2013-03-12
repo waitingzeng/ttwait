@@ -1,11 +1,15 @@
 #!/usr/bin/python
 # coding: utf-8
 from .rpc import Application, RequestHandler
-from pycomm.log import log
+from .magicclient import MagicClient
+from pycomm.log import log, open_log, open_debug
 import inspect
 import sys
 import linecache
+from pycomm.utils.pprint import pprint
 import re
+from tornado.options import define, parse_command_line, options
+
 
 class MagicApplication(Application):
     def __init__(self, server, request_callback):
@@ -25,7 +29,7 @@ class MagicHandler(RequestHandler):
         if fn is not None:
             try:
                 resp = fn(self, *self.request.args, **self.request.kwargs)
-                
+
                 self.appendarg('OK')
                 self.appendarg(resp)
             except Exception, info:
@@ -57,10 +61,44 @@ class MagicHandler(RequestHandler):
             func.append(code.strip())
         return func
 
+
 class MagicServer(object):
-    def __init__(self, port, address=''):
+    def __init__(self, options):
+        self.options = options
         self.app = MagicApplication(self, MagicHandler)
-        self.app.listen(port)
+        self.app.listen(options.port, options.address)
+        self.init(options)
 
     def start(self):
         self.app.start()
+
+    def init(self, options):
+        pass
+
+
+def run_server(app):
+        
+    define("logname", type=str, default='magicserver',
+           help="the log prefix")
+    define("port", type=int, default=11011,
+           help="the server port")
+    define("address", type=str, default='127.0.0.1',
+           help="the server address")
+
+    define("command", type=str, help="the command to call")
+
+    define("open_debug", type=bool, default=False)
+
+    parse_command_line()
+
+    if options.command:
+        cli = MagicClient(options.address, options.port)
+        exec('pprint(cli.%s)' % options.command)
+        sys.exit(0)
+
+    open_log(options.logname, options.logging)
+    if options.open_debug:
+        open_debug()
+    obj = app(options)
+
+    obj.start()

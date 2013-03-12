@@ -37,6 +37,9 @@ class BasePipe(object):
         self.set_status(url, UrlStatus.pop)
         return url, kwargs
 
+    def get_by_url(self, url):
+        return None, None
+
     get_url = pop_url
     get = next
 
@@ -82,3 +85,10 @@ class DjangoPipeline(BasePipe):
             return None
         result, create = self.result_model.objects.get_or_create(url_id=url.pk)
         return result
+
+    def get_by_url(self, url):
+        try:
+            obj = self.model.objects.get(url=url)
+        except:
+            return None, None
+        return obj.url, json_decode(obj.kwargs)
