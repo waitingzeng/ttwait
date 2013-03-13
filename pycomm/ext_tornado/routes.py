@@ -37,7 +37,13 @@ class route(object):
     def __init__(self, uris, name=None):
         if not isinstance(uris, (list, tuple)):
             uris = [uris]
-        self._uris = uris
+        auto_uris = []
+        for uri in uris:
+            uri = uri.rstrip('/')
+            auto_uris.append(uri + '/')
+            auto_uris.append(uri)
+            
+        self._uris = auto_uris
         self.name = name
 
     def __call__(self, _handler):
