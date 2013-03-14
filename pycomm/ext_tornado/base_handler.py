@@ -13,7 +13,7 @@ import ujson as json
 from pycomm.utils.decorator import decorator
 from tornado import stack_context
 import base64
-
+import operator
 
 
 class UrlHandlerType(type):
@@ -22,15 +22,17 @@ class UrlHandlerType(type):
         if name.lower() not in ('RequestHandler', 'BaseHandler') and not name.startswith('_'):
             urls_helper.add_handler(res)
         return res
-    
+
+
 @decorator
-def asynchronous(method, self, *args, **kwargs):    
+def asynchronous(method, self, *args, **kwargs):
     if self.application._wsgi:
         raise Exception("@asynchronous is not supported for WSGI apps")
     self._auto_finish = False
     with stack_context.ExceptionStackContext(
-        self._stack_context_handle_exception):
+            self._stack_context_handle_exception):
         return method(self, *args, **kwargs)
+
 
 class BaseHandler(RequestHandler):
     __metaclass__ = UrlHandlerType
@@ -39,7 +41,7 @@ class BaseHandler(RequestHandler):
     controller_path = 'controller'
 
     on_finish_callback = {}
-    
+
     @classmethod
     def register_finish_callback(cls, func, pri=0):
         if isinstance(cls.on_finish_callback, list):
@@ -49,17 +51,16 @@ class BaseHandler(RequestHandler):
     @classmethod
     def run_finish_callback(cls, handler):
         if isinstance(cls.on_finish_callback, dict):
-            self.on_finish_callback = sorted(on_finish_callback.iteritems(), key=operator.itemgetter(1), reverse=True)
+            cls.on_finish_callback = sorted(cls.on_finish_callback.iteritems(), key=operator.itemgetter(1), reverse=True)
 
-        for func in self.on_finish_callback:
+        for func in cls.on_finish_callback:
             func(handler)
-
 
     def __init__(self, *args, **kwargs):
         RequestHandler.__init__(self, *args, **kwargs)
         self.log = PrefixLog('%s[%s]' % (self.request.method, self.request.path))
         self.init()
-        
+
     def on_finish(self):
 
         self.log.trace("finish handler")
@@ -68,7 +69,7 @@ class BaseHandler(RequestHandler):
 
         self._settings = Storage(self.application.settings)
 
-        self.user_agent = UserAgent(self.request.headers["User-Agent"])
+        self.user_agent = UserAgent(self.request.headers.get("User-Agent", ''))
         #self.user_agent.agent_lower, self.user_agent.is_mobile
         self.device = self.get_device() if self.detect_user_agent else self.default_template_path
 
@@ -82,7 +83,7 @@ class BaseHandler(RequestHandler):
         with RequestHandler._template_loader_lock:
             for loader in RequestHandler._template_loaders.values():
                 loader.reset()
-        
+
     def render_string(self, template_name, **kwargs):
         if self.detect_user_agent:
             template_name = osp.join(self.device, template_name)
@@ -90,7 +91,7 @@ class BaseHandler(RequestHandler):
             template_name = osp.join(self.default_template_path, template_name)
 
         return RequestHandler.render_string(self, template_name, **kwargs)
-        
+
     def render_json_string(self, **kwargs):
         content_type = kwargs.pop('content_type', 'application/json')
         self.set_header('Content-Type', content_type)
@@ -114,7 +115,6 @@ class BaseHandler(RequestHandler):
             else:
                 privacy = 'private, '
             self.set_header('Cache-Control', '%smax-age=%s' % (privacy, seconds))
-    
 
     def get_template_namespace(self, **kwargs):
         context = RequestHandler.get_template_namespace(self)
@@ -142,12 +142,11 @@ class BaseHandler(RequestHandler):
             return self.settings.mobile_theme
         return self.settings.theme
 
-
     def js_url(self, filename, prefix=False):
         filename = filename.strip()
         if prefix:
             return urlparse.urljoin(self.settings.js_resource_url, filename)
-        return self.static_url( osp.join('js', self.device, filename))
+        return self.static_url(osp.join('js', self.device, filename))
 
     def css_url(self, filename, prefix=False):
         filename = filename.strip()
@@ -169,7 +168,7 @@ class BaseHandler(RequestHandler):
             path = self.settings.get('path')
 
         return RequestHandler.set_cookie(self, name, value, domain, expires, path,
-                   expires_days, **kwargs)
+                                         expires_days, **kwargs)
 
     def _handle_request_exception(self, e):
         if not isinstance(e, HTTPError):
@@ -178,6 +177,3 @@ class BaseHandler(RequestHandler):
 
             return self.send_error(500, exc_info=sys.exc_info())
         return RequestHandler._handle_request_exception(self, e)
-
-
-

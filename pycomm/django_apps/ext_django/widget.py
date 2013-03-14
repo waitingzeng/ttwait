@@ -19,7 +19,7 @@ class AdminImageWidget(AdminFileWidget):
 
             file_path = urlparse.urljoin(settings.MEDIA_URL, file_name)
             try:            # is image
-                output.append('<a target="_blank" href="%(file_path)s"><img src="%(file_path)s" width="100px" /></a> ' % locals())
+                output.append('<a target="_blank" href="%(file_path)s"><img src="%(file_path)s" style="max-width:500px;max-height=300px" /></a> ' % locals())
             except IOError:  # not image
                 output.append('%s <a target="_blank" href="%s">%s</a> <br />%s ' %
                              (_('Currently:'), file_path, file_name, _('Change:')))
@@ -39,7 +39,7 @@ class AdminImageURLFieldWidget(AdminURLFieldWidget):
         if value:
             value = urlparse.urljoin(settings.MEDIA_URL, value)
 
-            output.append('<a target="_blank" href="%(value)s"><img src="%(value)s" width="100px" /></a> <input type="hidden" name="%(name)s" value="%(value)s" />' % locals())
+            output.append('<a target="_blank" href="%(value)s"><img src="%(value)s" style="max-width:500px;max-height=300px" /></a> <input type="hidden" name="%(name)s" value="%(value)s" />' % locals())
         else:
             output.append(super(AdminImageURLFieldWidget, self).render(name, value, attrs))
         return mark_safe(u''.join(output))
