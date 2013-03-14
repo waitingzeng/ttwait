@@ -360,10 +360,8 @@ def create_admin_models(model):
 
 def auto_admin_for_models(app_models, app_labels=None, register=True):
     admins = []
-    print app_labels
     for name in dir(app_models):
         model = getattr(app_models, name)
-        print model
         if getattr(model, 'noadmin', False):
             continue
 

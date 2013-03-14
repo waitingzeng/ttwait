@@ -154,7 +154,6 @@ def transition(field=None, source='*', target=None, save=True, conditions=[], ve
                     status_change = ModelStatusChange(obj=instance, status_from=status_map[source_state], status_to=status_map[target])
                     if request:
                         status_change.user = request.user 
-                    print status_change.__dict__
                     status_change.save()
 
 
