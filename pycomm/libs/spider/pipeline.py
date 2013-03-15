@@ -1,23 +1,23 @@
 #!/usr/bin/python
 #coding=utf8
-from .utils import UrlStatus, Result
+from .utils import UrlStatus
 from pycomm.utils.escape import json_encode, json_decode
 from pycomm.log import log
+from pycomm.libs.rpc.magicclient import MagicClient
 
 
 class BasePipe(object):
 
     def __init__(self, starturls):
         for url in starturls:
-            self.push_url(url, 'starturl')
+            if isinstance(url, (list, tuple)):
+                url, kwargs = url
+            else:
+                kwargs = {}
+            print url, kwargs
+            self.push_url(url, 'starturl', **kwargs)
 
     def init(self):
-        pass
-
-    def get_result_obj(self, response):
-        return Result()
-
-    def save_result(self, response, result):
         pass
 
     def push_url(self, href, title, priority=0, **kwargs):
@@ -92,3 +92,59 @@ class DjangoPipeline(BasePipe):
         except:
             return None, None
         return obj.url, json_decode(obj.kwargs)
+
+
+class LevelDBPipeline(BasePipe):
+    def __init__(self, db_name, db_host, db_port, *args, **kwargs):
+          self.client = MagicClient(db_host, db_port)
+          self.db_name = db_name
+          self.ct = 0
+          BasePipe.__init__(self, *args, **kwargs)
+
+    def push_url(self, href, title, priority=0, **kwargs):
+        data = {
+            'title' : title,
+            'kwargs' : kwargs,
+            'status' : UrlStatus.new,
+        }
+        data = json_encode(data)
+        self.client.set_default(self.db_name, href, data)
+
+    def pop_url(self):
+        while True:
+            try:
+                url, data = self.client.next(self.db_name)
+                data = json_decode(data)
+                if data['status'] != UrlStatus.new:
+                    continue
+                self.ct += 1
+                return url, data['kwargs']
+            except Exception, info:
+                if self.ct == 0:
+                    raise info
+
+    def exists(self, url):
+        return self.client.exists(self.db_name, url)
+
+    def set_status(self, url, status, msg=''):
+        data = self.client.get(self.db_name, url)
+        data = json_decode(data)
+        data['status'] = status
+        data = json_encode(data)
+        self.client.set(self.db_name, url, data)
+
+    def next(self):
+        url, kwargs = self.pop_url()
+        self.set_status(url, UrlStatus.pop)
+        return url, kwargs
+
+    def get_by_url(self, url):
+        try:
+            data = self.client.get(self.db_name, url)
+            data = json_decode(data)
+            return url, data['kwargs']
+        except:
+            return None, None
+
+    def save_result(self, *args, **kwargs):
+        pass
