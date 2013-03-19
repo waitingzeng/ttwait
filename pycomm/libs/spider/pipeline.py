@@ -109,7 +109,6 @@ class LevelDBPipeline(BasePipe):
             'status': status,
         }
         data = json_encode(data)
-        print href, data
         self.client.set_default(self.db_name, href, data)
 
     def pop_url(self):
