@@ -62,7 +62,7 @@ class Item(ResponseHandler):
             if not email:
                 continue
             email_client.set('ebay_email', m[0].lower().strip(), '1')
-            print 'found emial', email
+            print 'found email', email
 
 
 def main():

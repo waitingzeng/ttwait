@@ -86,4 +86,4 @@ class STPRequest(object):
         return {}
 
     def __str__(self):
-        return '%s:%s' % (self.connection.address, len(self._argv))
+        return '%s:%s:%s' % (self.connection.address, self.func, len(self._argv))

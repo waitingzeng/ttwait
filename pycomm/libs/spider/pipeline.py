@@ -99,6 +99,7 @@ class LevelDBPipeline(BasePipe):
         self.client = MagicClient(db_host, db_port)
         self.db_name = db_name
         self.ct = 0
+        self.data_cache = []
         BasePipe.__init__(self, *args, **kwargs)
 
     def push_url(self, href, *args, **kwargs):
@@ -108,20 +109,27 @@ class LevelDBPipeline(BasePipe):
             'status': status,
         }
         data = json_encode(data)
+        print href, data
         self.client.set_default(self.db_name, href, data)
 
     def pop_url(self):
         while True:
-            try:
-                url, data = self.client.next(self.db_name)
-                data = json_decode(data)
-                if data['status'] != UrlStatus.new:
+            if not self.data_cache:
+                try:
+                    self.data_cache = self.client.next_many(self.db_name, 1000)
+                except Exception:
+                    log.error("can not get data")
+                    time.sleep(3)
                     continue
-                self.ct += 1
-                return url, data['kwargs']
-            except Exception, info:
-                if self.ct == 0:
-                    raise info
+                if not self.data_cache:
+                    raise StopIteration
+
+            url, data = self.data_cache.pop(0)
+            data = json_decode(data)
+            if data['status'] != UrlStatus.new:
+                continue
+            self.ct += 1
+            return url, data['kwargs']
 
     def exists(self, url):
         return self.client.exists(self.db_name, url)
