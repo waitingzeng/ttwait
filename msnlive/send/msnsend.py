@@ -15,10 +15,11 @@ from pycomm.utils.dict4ini import DictIni
 from pycomm.libs.msnclass import MSN, TimeoutException
 from pycomm.libs.msnclass.message import get_message
 from pycomm.utils.tracktime import DiffTime
-from messagecache import  MuchMessageCache
+from messagecache import MuchMessageCache
 from pycomm.utils.accounttext import RandomAccountNotMembery, NotDataException
 from pycomm.utils import textfile
 import threading
+
 
 class AccountClient(object):
     def __init__(self, *args):
@@ -44,7 +45,6 @@ class AccountClient(object):
 
         if not self.data:
             raise Exception('Not Data Left')
-        
 
     def get_rnd(self):
         with self.lock:
@@ -63,6 +63,7 @@ class AccountClient(object):
 
 class AccountCache(RandomAccountNotMembery):
     autorelead = True
+
     def get(self):
         acc = RandomAccountNotMembery.get(self)
         if acc.find('----') != -1:
@@ -96,11 +97,11 @@ class MSNSend(ThreadBase):
             self.names = set(self.names)
 
     def init(self):
-        self.parse_names() 
-            
-        self.msgs = MuchMessageCache(self.site_config, self.names, self.conf.shorturl==1)
+        self.parse_names()
+
+        self.msgs = MuchMessageCache(self.site_config, self.names, self.conf.shorturl == 1)
         self.log = log
-        #self.msgs.load() 
+        #self.msgs.load()
         if self.options.test_msgs:
             print self.msgs.get()
             sys.exit()
@@ -108,7 +109,7 @@ class MSNSend(ThreadBase):
             self.accounts = textfile.CacheText(self.options.account, force_local=False)
         else:
             self.accounts = AccountClient(self.conf.account_server[0], self.conf.account_server[1])
-        
+
         self.wait_one_msg = float(self.conf.wait_one_msg)
         self.total = 0
         self.msn_ct = 0
@@ -132,19 +133,19 @@ class MSNSend(ThreadBase):
         cur_total = self.total - self.last_total
         self.last_total = self.total
         self.cur.reset()
-        s = "msn_ct %s, msn_speed %0.2f total %s speed:%0.2f/%0.2f time %0.2f/%0.2f " % (self.msn_ct, self.msn_ct / diff, self.total, self.total / diff, cur_total/diff1, diff, diff1 )
+        s = "msn_ct %s, msn_speed %0.2f total %s speed:%0.2f/%0.2f time %0.2f/%0.2f " % (self.msn_ct, self.msn_ct / diff, self.total, self.total / diff, cur_total / diff1, diff, diff1)
         log.error(s)
-        
+
     def get_allow_email(self, app, msn_ct):
         members = app.get_allow_email()
-        
+
         return members or []
-    
+
     def send_members_oim(self, app, account, psw, msn_ct, msgs=None, T=None):
         if not msgs:
             msgs = self.msgs
         #members = self.get_friend_list(account, psw)
-        
+
         if not T:
             T = DiffTime()
         members = self.get_allow_email(app, msn_ct)
@@ -156,11 +157,11 @@ class MSNSend(ThreadBase):
         for member in members:
             if not mysignal.ALIVE:
                 break
-            
+
             if app.error_code == 800:
                 time.sleep(10)
                 app.error_code = 0
-            
+
             ct -= 1
             send_msg = ''
             try:
@@ -170,7 +171,7 @@ class MSNSend(ThreadBase):
                     self.total += 1
                     #if ct % 20 == 0:
                     #    self.log.trace('%d %s succ %d:%d, total %d %d msg is %s', msn_ct, account, len(members), ct, self.total, self.fail_total, send_msg.strip().split('\n')[-1])
-                    
+
                 else:
                     self.fail_total += 1
                     fail_ct += 1
@@ -183,8 +184,7 @@ class MSNSend(ThreadBase):
                 self.log.exception('send_member_oim %s', app.user)
                 break
         self.log.trace('%d %s send finish %s usetime %s total %d %d msg is %s', msn_ct, account, len(members), T.get_diff(), self.total, self.fail_total, send_msg.strip().split('\n')[-1])
-    
-    
+
     def work(self, name, id=0):
         try:
             line = self.accounts.get_rnd()
@@ -196,7 +196,7 @@ class MSNSend(ThreadBase):
         except NotDataException:
             mysignal.ALIVE = False
             return
-        
+
         self.msn_ct += 1
         msn_ct = self.msn_ct
         #self.log.error('%d %s begin connect' % (msn_ct, account))
@@ -206,7 +206,7 @@ class MSNSend(ThreadBase):
             res = app.connect(account, psw)
         except TimeoutException:
             self.log.error("$d %s login timeout usetime %s", msn_ct, account, T.get_diff())
-            return 
+            return
         if not res:
             self.log.error('%d %s %s login fail, usetime %s' % (msn_ct, account, psw, T.get_diff()))
             self.accounts.set_fail(line)
@@ -219,8 +219,6 @@ class MSNSend(ThreadBase):
             self.log.exception('%s %s send fail', account, psw)
             pass
         app.disconnect()
-
-            
 
 
 def main():

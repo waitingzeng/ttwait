@@ -45,6 +45,12 @@ class Application(MagicServer):
         for k, v in kwargs.items():
             db[k] = v
 
+    def batch_get(self, handler, db_name, keys):
+        db = self.get_db(db_name)
+        return list(db.batch_get(keys))
+
+
+
     def delete(self, handler, db_name, key):
         self.get_db(db_name).delete(key)
 
@@ -75,6 +81,14 @@ class Application(MagicServer):
             except:
                 break
         return res
+
+    def count(self, handler, db_name):
+        ct = 0
+        for item in self.get_db(db_name):
+            ct += 1
+        return ct
+
+
 
 def main():
     run_server(Application)

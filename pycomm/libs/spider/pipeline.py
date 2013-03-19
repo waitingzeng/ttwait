@@ -8,7 +8,7 @@ from pycomm.libs.rpc.magicclient import MagicClient
 
 class BasePipe(object):
 
-    def __init__(self, starturls):
+    def __init__(self, starturls=[]):
         for url in starturls:
             if isinstance(url, (list, tuple)):
                 url, kwargs = url
@@ -96,16 +96,16 @@ class DjangoPipeline(BasePipe):
 
 class LevelDBPipeline(BasePipe):
     def __init__(self, db_name, db_host, db_port, *args, **kwargs):
-          self.client = MagicClient(db_host, db_port)
-          self.db_name = db_name
-          self.ct = 0
-          BasePipe.__init__(self, *args, **kwargs)
+        self.client = MagicClient(db_host, db_port)
+        self.db_name = db_name
+        self.ct = 0
+        BasePipe.__init__(self, *args, **kwargs)
 
-    def push_url(self, href, title, priority=0, **kwargs):
+    def push_url(self, href, *args, **kwargs):
+        status = kwargs.pop('status', UrlStatus.new)
         data = {
-            'title' : title,
-            'kwargs' : kwargs,
-            'status' : UrlStatus.new,
+            'kwargs': kwargs,
+            'status': status,
         }
         data = json_encode(data)
         self.client.set_default(self.db_name, href, data)
